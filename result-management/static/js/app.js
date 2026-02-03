@@ -1,4 +1,5 @@
 // USAR Ranklist - Frontend Logic
+
 let currentData = [];
 
 // Load filters when page loads
@@ -7,18 +8,10 @@ document.addEventListener('DOMContentLoaded', function() {
     loadFilters();
 });
 
-// Get default filters (fallback)
-function getDefaultFilters() {
-    return {
-        branches: [
-            { code: "519", short: "AIDS", name: "Artificial Intelligence & Data Science" },
-            { code: "516", short: "AIML", name: "Artificial Intelligence & Machine Learning" },
-            { code: "520", short: "IIOT", name: "Industrial Internet of Things" },
-            { code: "517", short: "AR", name: "Automation & Robotics" }
-        ],
-        semesters: ["01", "02", "03", "04", "05", "06", "07", "08"],
-        batches: ["2024", "2023", "2022", "2021"]
-    };
+// Filter by branch (from footer links)
+function filterBranch(branch) {
+    document.getElementById('branchSelect').value = branch;
+    loadRanklist();
 }
 
 // Load filter options from API
@@ -37,35 +30,48 @@ async function loadFilters() {
         
         populateFilters(data);
         
+        // Update hero stats
+        if (data.total_students) {
+            document.getElementById('heroTotalStudents').textContent = data.total_students + '+';
+        }
+        
     } catch (error) {
         console.error('❌ API Error:', error);
-        console.log('📌 Using default filters');
         populateFilters(getDefaultFilters());
     }
 }
 
+// Get default filters (fallback)
+function getDefaultFilters() {
+    return {
+        branches: [
+            { code: "519", short: "AIDS", name: "Artificial Intelligence & Data Science" },
+            { code: "516", short: "AIML", name: "Artificial Intelligence & Machine Learning" },
+            { code: "520", short: "IIOT", name: "Industrial Internet of Things" },
+            { code: "517", short: "AR", name: "Automation & Robotics" }
+        ],
+        semesters: ["01", "02", "03", "04", "05", "06", "07", "08"],
+        batches: ["2024", "2023", "2022", "2021"]
+    };
+}
+
 // Populate filter dropdowns
 function populateFilters(data) {
-    // Populate Branch dropdown
     const branchSelect = document.getElementById('branchSelect');
     if (branchSelect) {
         branchSelect.innerHTML = '<option value="">All Branches</option>';
-        
         const branches = data.branches || getDefaultFilters().branches;
         branches.forEach(branch => {
             const option = document.createElement('option');
-            option.value = branch.short || branch.code;
-            option.textContent = `${branch.short || branch.code} - ${branch.name}`;
+            option.value = branch.short;
+            option.textContent = `${branch.short} - ${branch.name}`;
             branchSelect.appendChild(option);
         });
-        console.log(`✅ Branch options: ${branches.length}`);
     }
     
-    // Populate Semester dropdown
     const semesterSelect = document.getElementById('semesterSelect');
     if (semesterSelect) {
         semesterSelect.innerHTML = '<option value="">All</option>';
-        
         const semesters = data.semesters || getDefaultFilters().semesters;
         semesters.forEach(sem => {
             const option = document.createElement('option');
@@ -73,14 +79,11 @@ function populateFilters(data) {
             option.textContent = `Sem ${parseInt(sem)}`;
             semesterSelect.appendChild(option);
         });
-        console.log(`✅ Semester options: ${semesters.length}`);
     }
     
-    // Populate Batch dropdown
     const batchSelect = document.getElementById('batchSelect');
     if (batchSelect) {
         batchSelect.innerHTML = '<option value="">All</option>';
-        
         const batches = data.batches || getDefaultFilters().batches;
         batches.forEach(batch => {
             const option = document.createElement('option');
@@ -88,16 +91,9 @@ function populateFilters(data) {
             option.textContent = batch;
             batchSelect.appendChild(option);
         });
-        console.log(`✅ Batch options: ${batches.length}`);
     }
     
-    console.log('✅ All filters populated');
-}
-
-// Filter by branch (from footer links)
-function filterBranch(branch) {
-    document.getElementById('branchSelect').value = branch;
-    loadRanklist();
+    console.log('✅ Filters populated');
 }
 
 // Load ranklist based on filters
@@ -115,16 +111,6 @@ async function loadRanklist() {
     
     console.log('📥 Fetching:', url);
     
-    // Show loading
-    document.getElementById('ranklistBody').innerHTML = `
-        <tr>
-            <td colspan="8" class="loading">
-                <i class="fas fa-spinner fa-spin d-block"></i>
-                <p>Loading ranklist...</p>
-            </td>
-        </tr>
-    `;
-    
     try {
         const response = await fetch(url);
         
@@ -141,15 +127,7 @@ async function loadRanklist() {
         
     } catch (error) {
         console.error('❌ Error:', error);
-        document.getElementById('ranklistBody').innerHTML = `
-            <tr>
-                <td colspan="8" class="empty-state">
-                    <i class="fas fa-exclamation-triangle d-block text-warning"></i>
-                    <h5>Failed to load ranklist</h5>
-                    <p>Please try again later</p>
-                </td>
-            </tr>
-        `;
+        alert('Failed to load ranklist');
     }
 }
 
@@ -158,24 +136,36 @@ function displayRanklist(data) {
     const tbody = document.getElementById('ranklistBody');
     const ranklist = data.ranklist || [];
     
+    // Update result count
+    const resultCount = document.getElementById('resultCount');
+    const resultCountNum = document.getElementById('resultCountNum');
+    
     if (ranklist.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="8" class="empty-state">
-                    <i class="fas fa-search d-block"></i>
-                    <h5>No students found</h5>
-                    <p>Try different filter options</p>
+                <td colspan="8">
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <h5>No Results Found</h5>
+                        <p>Try adjusting your filters to find students</p>
+                    </div>
                 </td>
             </tr>
         `;
+        resultCount.style.display = 'none';
         document.getElementById('statsRow').style.display = 'none';
         return;
     }
     
+    resultCount.style.display = 'inline-flex';
+    resultCountNum.textContent = ranklist.length;
+    
     tbody.innerHTML = ranklist.map(student => {
-        const rankBadge = student.rank === 1 ? '🥇' : 
-                          student.rank === 2 ? '🥈' : 
-                          student.rank === 3 ? '🥉' : student.rank;
+        const rankDisplay = student.rank === 1 ? '🥇' : 
+                            student.rank === 2 ? '🥈' : 
+                            student.rank === 3 ? '🥉' : student.rank;
         const rankClass = student.rank <= 3 ? `rank-${student.rank}` : '';
         
         const sgpa = typeof student.sgpa === 'number' ? student.sgpa.toFixed(2) : student.sgpa;
@@ -184,12 +174,12 @@ function displayRanklist(data) {
         return `
             <tr onclick="viewStudent('${student.roll_no}')">
                 <td class="text-center">
-                    <span class="rank-badge ${rankClass}">${rankBadge}</span>
+                    <span class="rank-badge ${rankClass}">${rankDisplay}</span>
                 </td>
-                <td><strong>${student.roll_no}</strong></td>
-                <td>${student.name}</td>
-                <td><span class="badge bg-${getBranchColor(student.branch)}">${student.branch}</span></td>
-                <td class="text-center">${student.semester}</td>
+                <td><span class="student-roll">${student.roll_no}</span></td>
+                <td><span class="student-name">${student.name}</span></td>
+                <td><span class="branch-badge branch-${student.branch}">${student.branch}</span></td>
+                <td class="text-center">${parseInt(student.semester)}</td>
                 <td class="text-center">${student.batch}</td>
                 <td class="text-center"><span class="sgpa-badge">${sgpa}</span></td>
                 <td class="text-center"><span class="percentage-badge">${percentage}%</span></td>
@@ -213,7 +203,7 @@ function displayStats(data) {
     const avgSgpa = sgpas.length > 0 ? (sgpas.reduce((a, b) => a + b, 0) / sgpas.length).toFixed(2) : '0.00';
     const avgPercentage = percentages.length > 0 ? (percentages.reduce((a, b) => a + b, 0) / percentages.length).toFixed(2) : '0.00';
     
-    document.getElementById('statsRow').style.display = 'flex';
+    document.getElementById('statsRow').style.display = 'grid';
     document.getElementById('totalStudents').textContent = ranklist.length;
     document.getElementById('avgSgpa').textContent = avgSgpa;
     document.getElementById('avgPercentage').textContent = avgPercentage + '%';
@@ -236,37 +226,40 @@ async function viewStudent(rollNo) {
         const percentage = typeof student.percentage === 'number' ? student.percentage.toFixed(2) : student.percentage;
         
         document.getElementById('studentDetails').innerHTML = `
-            <div class="text-center mb-3">
-                <div class="stat-icon primary mx-auto mb-3">
-                    <i class="fas fa-user-graduate"></i>
+            <div class="text-center mb-4">
+                <div style="width: 80px; height: 80px; background: var(--gradient-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 2rem; color: white;">
+                    ${student.name.charAt(0)}
                 </div>
-                <h4>${student.name}</h4>
-                <p class="text-muted">${student.roll_no}</p>
+                <h4 style="margin-bottom: 4px; font-weight: 700;">${student.name}</h4>
+                <p style="color: var(--gray-500); font-family: monospace;">${student.roll_no}</p>
             </div>
-            <div class="row text-center mb-3">
+            
+            <div class="row g-3 mb-4">
                 <div class="col-4">
-                    <div class="p-2 bg-light rounded">
-                        <h5 class="text-primary mb-0">${sgpa}</h5>
-                        <small>SGPA</small>
+                    <div style="background: var(--gray-50); padding: 1rem; border-radius: var(--radius); text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">${sgpa}</div>
+                        <div style="font-size: 0.75rem; color: var(--gray-500);">SGPA</div>
                     </div>
                 </div>
                 <div class="col-4">
-                    <div class="p-2 bg-light rounded">
-                        <h5 class="text-success mb-0">${percentage}%</h5>
-                        <small>Percentage</small>
+                    <div style="background: var(--gray-50); padding: 1rem; border-radius: var(--radius); text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--success);">${percentage}%</div>
+                        <div style="font-size: 0.75rem; color: var(--gray-500);">Percentage</div>
                     </div>
                 </div>
                 <div class="col-4">
-                    <div class="p-2 bg-light rounded">
-                        <h5 class="text-info mb-0">${student.credits || 0}</h5>
-                        <small>Credits</small>
+                    <div style="background: var(--gray-50); padding: 1rem; border-radius: var(--radius); text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--warning);">${student.credits || 0}</div>
+                        <div style="font-size: 0.75rem; color: var(--gray-500);">Credits</div>
                     </div>
                 </div>
             </div>
-            <hr>
-            <p><strong>Branch:</strong> ${student.branch_name || student.branch}</p>
-            <p><strong>Semester:</strong> ${student.semester}</p>
-            <p><strong>Batch:</strong> ${student.batch}</p>
+            
+            <div style="background: var(--gray-50); padding: 1rem; border-radius: var(--radius);">
+                <p style="margin-bottom: 8px;"><strong>Branch:</strong> ${student.branch_name || student.branch}</p>
+                <p style="margin-bottom: 8px;"><strong>Semester:</strong> ${student.semester}</p>
+                <p style="margin-bottom: 0;"><strong>Batch:</strong> ${student.batch}</p>
+            </div>
         `;
         
         new bootstrap.Modal(document.getElementById('studentModal')).show();
@@ -275,12 +268,6 @@ async function viewStudent(rollNo) {
         console.error('❌ Error:', error);
         alert('Failed to load student details');
     }
-}
-
-// Get branch color
-function getBranchColor(branch) {
-    const colors = { 'AIDS': 'primary', 'AIML': 'danger', 'IIOT': 'info', 'AR': 'success' };
-    return colors[branch] || 'secondary';
 }
 
 // Export to CSV

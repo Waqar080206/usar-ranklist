@@ -5,152 +5,262 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>USAR Ranklist | Student Rankings</title>
     
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+    
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Custom CSS -->
     <link href="/static/css/style.css" rel="stylesheet">
 </head>
 <body>
 
     <!-- Navbar -->
-    <nav class="navbar navbar-custom">
+    <nav class="navbar-custom">
         <div class="container">
             <a class="navbar-brand" href="/">
-                <div class="brand-icon">🎓</div>
-                <div>
-                    <span>USAR Ranklist</span>
+                <div class="brand-icon">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <div class="brand-text">
+                    <span class="brand-name">USAR Ranklist</span>
+                    <span class="brand-tagline">Draft v1.0</span>
                 </div>
             </a>
+            <div class="nav-links">
+                <a href="https://github.com/Waqar080206/usar-ranklist" target="_blank" class="nav-link-item">
+                    <i class="fab fa-github"></i>
+                </a>
+            </div>
         </div>
     </nav>
 
     <!-- Hero Section -->
     <section class="hero-section">
+        <div class="hero-bg"></div>
         <div class="container">
-            <h1 class="hero-title">Student Ranklist</h1>
-            <p class="hero-subtitle">University School of Automation & Robotics, GGSIPU</p>
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Real-time Rankings</span>
+                </div>
+                <h1 class="hero-title">
+                    Student <span class="gradient-text">Ranklist</span>
+                </h1>
+                <p class="hero-subtitle">
+                    University School of Automation & Robotics, GGSIPU
+                </p>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <span class="stat-num">4</span>
+                        <span class="stat-text">Branches</span>
+                    </div>
+                    <div class="hero-stat-divider"></div>
+                    <div class="hero-stat">
+                        <span class="stat-num">8</span>
+                        <span class="stat-text">Semesters</span>
+                    </div>
+                    <div class="hero-stat-divider"></div>
+                    <div class="hero-stat">
+                        <span class="stat-num" id="heroTotalStudents">2700+</span>
+                        <span class="stat-text">Students</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-wave">
+            <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" fill="var(--bg-primary)"/>
+            </svg>
         </div>
     </section>
 
     <!-- Main Content -->
-    <main class="container py-4">
-        <!-- Filter Card -->
-        <div class="filter-card">
-            <h5 class="filter-title"><i class="fas fa-filter"></i> Filter Students</h5>
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label">Branch</label>
-                    <select class="form-select" id="branchSelect">
-                        <option value="">All Branches</option>
-                    </select>
+    <main class="main-content">
+        <div class="container">
+            
+            <!-- Filter Card -->
+            <div class="filter-card" data-aos="fade-up">
+                <div class="filter-header">
+                    <div class="filter-icon">
+                        <i class="fas fa-sliders-h"></i>
+                    </div>
+                    <div>
+                        <h5 class="filter-title">Filter Students</h5>
+                        <p class="filter-subtitle">Customize your search criteria</p>
+                    </div>
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label">Semester</label>
-                    <select class="form-select" id="semesterSelect">
-                        <option value="">All</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Batch</label>
-                    <select class="form-select" id="batchSelect">
-                        <option value="">All</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Sort By</label>
-                    <select class="form-select" id="sortSelect">
-                        <option value="sgpa">SGPA</option>
-                        <option value="percentage">Percentage</option>
-                    </select>
-                </div>
-                <div class="col-md-1">
-                    <label class="form-label">Order</label>
-                    <select class="form-select" id="orderSelect">
-                        <option value="desc">High→Low</option>
-                        <option value="asc">Low→High</option>
-                    </select>
-                </div>
-                <div class="col-md-1">
-                    <label class="form-label">&nbsp;</label>
-                    <button class="btn btn-search" onclick="loadRanklist()">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </div>
-                <div class="col-md-1">
-                    <label class="form-label">&nbsp;</label>
-                    <button class="btn btn-export" onclick="exportToCSV()">
-                        <i class="fas fa-download"></i>
-                    </button>
+                
+                <div class="filter-body">
+                    <div class="row g-3">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="filter-group">
+                                <label class="filter-label">
+                                    <i class="fas fa-code-branch"></i> Branch
+                                </label>
+                                <select class="filter-select" id="branchSelect">
+                                    <option value="">All Branches</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <div class="filter-group">
+                                <label class="filter-label">
+                                    <i class="fas fa-layer-group"></i> Semester
+                                </label>
+                                <select class="filter-select" id="semesterSelect">
+                                    <option value="">All</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <div class="filter-group">
+                                <label class="filter-label">
+                                    <i class="fas fa-calendar-alt"></i> Batch
+                                </label>
+                                <select class="filter-select" id="batchSelect">
+                                    <option value="">All</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <div class="filter-group">
+                                <label class="filter-label">
+                                    <i class="fas fa-sort"></i> Sort By
+                                </label>
+                                <select class="filter-select" id="sortSelect">
+                                    <option value="sgpa">SGPA</option>
+                                    <option value="percentage">Percentage</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-1 col-md-6">
+                            <div class="filter-group">
+                                <label class="filter-label">
+                                    <i class="fas fa-arrow-up-wide-short"></i> Order
+                                </label>
+                                <select class="filter-select" id="orderSelect">
+                                    <option value="desc">↓ High</option>
+                                    <option value="asc">↑ Low</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <div class="filter-group">
+                                <label class="filter-label">&nbsp;</label>
+                                <div class="filter-buttons">
+                                    <button class="btn-search" onclick="loadRanklist()">
+                                        <i class="fas fa-search"></i>
+                                        <span>Search</span>
+                                    </button>
+                                    <button class="btn-export" onclick="exportToCSV()" title="Export CSV">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Stats Row -->
-        <div class="row stats-row" id="statsRow" style="display: none;">
-            <div class="col-md-3 col-6">
-                <div class="stat-card">
-                    <div class="stat-icon primary"><i class="fas fa-users"></i></div>
-                    <div class="stat-value" id="totalStudents">0</div>
-                    <div class="stat-label">Total Students</div>
+            <!-- Stats Row -->
+            <div class="stats-grid" id="statsRow" style="display: none;">
+                <div class="stat-card stat-primary">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="totalStudents">0</span>
+                        <span class="stat-label">Total Students</span>
+                    </div>
+                </div>
+                <div class="stat-card stat-success">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="avgSgpa">0</span>
+                        <span class="stat-label">Average SGPA</span>
+                    </div>
+                </div>
+                <div class="stat-card stat-warning">
+                    <div class="stat-icon">
+                        <i class="fas fa-percent"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="avgPercentage">0%</span>
+                        <span class="stat-label">Average %</span>
+                    </div>
+                </div>
+                <div class="stat-card stat-purple">
+                    <div class="stat-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="topperName">-</span>
+                        <span class="stat-label">Topper</span>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-3 col-6">
-                <div class="stat-card">
-                    <div class="stat-icon success"><i class="fas fa-chart-line"></i></div>
-                    <div class="stat-value" id="avgSgpa">0</div>
-                    <div class="stat-label">Avg SGPA</div>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="stat-card">
-                    <div class="stat-icon warning"><i class="fas fa-percentage"></i></div>
-                    <div class="stat-value" id="avgPercentage">0%</div>
-                    <div class="stat-label">Avg Percentage</div>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="stat-card">
-                    <div class="stat-icon secondary"><i class="fas fa-trophy"></i></div>
-                    <div class="stat-value" id="topperName">-</div>
-                    <div class="stat-label">Topper</div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Ranklist Table -->
-        <div class="table-card">
-            <div class="table-header">
-                <h5><i class="fas fa-list-ol me-2"></i>Ranklist</h5>
+            <!-- Ranklist Table -->
+            <div class="table-card">
+                <div class="table-header">
+                    <div class="table-title">
+                        <i class="fas fa-list-ol"></i>
+                        <span>Ranklist</span>
+                    </div>
+                    <div class="table-badge" id="resultCount" style="display: none;">
+                        <span id="resultCountNum">0</span> results
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="ranklist-table">
+                        <thead>
+                            <tr>
+                                <th class="text-center" style="width: 80px;">Rank</th>
+                                <th style="width: 140px;">Roll No</th>
+                                <th>Name</th>
+                                <th style="width: 100px;">Branch</th>
+                                <th class="text-center" style="width: 70px;">Sem</th>
+                                <th class="text-center" style="width: 80px;">Batch</th>
+                                <th class="text-center" style="width: 90px;">SGPA</th>
+                                <th class="text-center" style="width: 100px;">Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ranklistBody">
+                            <tr>
+                                <td colspan="8">
+                                    <div class="empty-state">
+                                        <div class="empty-icon">
+                                            <i class="fas fa-search"></i>
+                                        </div>
+                                        <h5>Ready to Search</h5>
+                                        <p>Select filters above and click Search to view the ranklist</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <div class="table-responsive">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th class="text-center">Rank</th>
-                            <th>Roll No</th>
-                            <th>Name</th>
-                            <th>Branch</th>
-                            <th class="text-center">Sem</th>
-                            <th class="text-center">Batch</th>
-                            <th class="text-center">SGPA</th>
-                            <th class="text-center">Percentage</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ranklistBody">
-                        <tr>
-                            <td colspan="8" class="empty-state">
-                                <i class="fas fa-search d-block"></i>
-                                <h5>Select filters and click Search</h5>
-                                <p>Choose branch, semester, or batch to view ranklist</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+
+            <!-- Disclaimer -->
+            <div class="disclaimer-card">
+                <div class="disclaimer-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="disclaimer-content">
+                    <h6>Disclaimer</h6>
+                    <p>This is an <strong>unofficial</strong> website. Data is sourced from publicly available IPU results. 
+                    Always verify from the official IPU website. We are not responsible for any discrepancies.</p>
+                </div>
             </div>
+
         </div>
     </main>
 
@@ -161,7 +271,9 @@
                 <div class="row">
                     <div class="col-lg-4 mb-4 mb-lg-0">
                         <div class="footer-brand">
-                            <div class="footer-brand-icon">🎓</div>
+                            <div class="footer-brand-icon">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
                             <div>
                                 <h4>USAR Ranklist</h4>
                                 <p>GGSIPU, New Delhi</p>
@@ -171,31 +283,46 @@
                             A comprehensive platform to view and analyze student rankings 
                             for University School of Automation & Robotics.
                         </p>
+                        <p class="footer-credit">
+                            Inspired by <a href="https://ipuranklist.com" target="_blank">IPU Ranklist</a> 
+                            by <a href="https://github.com/ankushgarg1998" target="_blank">Ankush Garg</a>
+                        </p>
                     </div>
                     <div class="col-lg-2 col-md-4 mb-4 mb-md-0">
                         <h6 class="footer-heading">Quick Links</h6>
-                        <ul class="footer-links-list">
-                            <li><a href="/">Home</a></li>
-                            <li><a href="#" onclick="loadRanklist()">Ranklist</a></li>
+                        <ul class="footer-links">
+                            <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
+                            <li><a href="#" onclick="loadRanklist()"><i class="fas fa-list"></i> Ranklist</a></li>
+                            <li><a href="https://github.com/Waqar080206/usar-ranklist" target="_blank"><i class="fab fa-github"></i> GitHub</a></li>
                         </ul>
                     </div>
                     <div class="col-lg-3 col-md-4 mb-4 mb-md-0">
                         <h6 class="footer-heading">Branches</h6>
-                        <ul class="footer-links-list">
-                            <li><a href="#" onclick="filterBranch('AIDS')">AI & Data Science</a></li>
-                            <li><a href="#" onclick="filterBranch('AIML')">AI & Machine Learning</a></li>
-                            <li><a href="#" onclick="filterBranch('IIOT')">Industrial IoT</a></li>
-                            <li><a href="#" onclick="filterBranch('AR')">Automation & Robotics</a></li>
+                        <ul class="footer-links">
+                            <li><a href="#" onclick="filterBranch('AIDS')"><i class="fas fa-brain"></i> AI & Data Science</a></li>
+                            <li><a href="#" onclick="filterBranch('AIML')"><i class="fas fa-robot"></i> AI & ML</a></li>
+                            <li><a href="#" onclick="filterBranch('IIOT')"><i class="fas fa-network-wired"></i> Industrial IoT</a></li>
+                            <li><a href="#" onclick="filterBranch('AR')"><i class="fas fa-cogs"></i> Automation & Robotics</a></li>
                         </ul>
                     </div>
                     <div class="col-lg-3 col-md-4">
-                        <h6 class="footer-heading">Connect</h6>
+                        <h6 class="footer-heading">Developer</h6>
+                        <div class="developer-card">
+                            <div class="developer-avatar">W</div>
+                            <div class="developer-info">
+                                <h6>Waqar Akhtar</h6>
+                                <p>Full Stack Developer</p>
+                            </div>
+                        </div>
                         <div class="footer-social">
-                            <a href="https://github.com" target="_blank" class="social-icon github">
+                            <a href="https://github.com/Waqar080206" target="_blank" class="social-btn github">
                                 <i class="fab fa-github"></i>
                             </a>
-                            <a href="http://ipu.ac.in" target="_blank" class="social-icon website">
+                            <a href="https://waqar.tech" target="_blank" class="social-btn website">
                                 <i class="fas fa-globe"></i>
+                            </a>
+                            <a href="https://linkedin.com" target="_blank" class="social-btn linkedin">
+                                <i class="fab fa-linkedin-in"></i>
                             </a>
                         </div>
                     </div>
@@ -205,11 +332,10 @@
         <div class="footer-bottom">
             <div class="container">
                 <div class="footer-bottom-content">
-                    <p class="footer-copyright">
-                        Made with <span class="heart">❤️</span> by 
-                        <a href="#">USAR Students</a>
+                    <p class="copyright">
+                        Made with <span class="heart">❤️</span> for USAR Students
                     </p>
-                    <p class="footer-credits">© 2024 USAR Ranklist. All rights reserved.</p>
+                    <p class="copyright-year">© 2024-2026 USAR Ranklist</p>
                 </div>
             </div>
         </div>
@@ -218,10 +344,15 @@
     <!-- Student Modal -->
     <div class="modal fade" id="studentModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
+            <div class="modal-content custom-modal">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-user-graduate me-2"></i>Student Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <div class="modal-title-wrapper">
+                        <i class="fas fa-user-graduate"></i>
+                        <h5 class="modal-title">Student Details</h5>
+                    </div>
+                    <button type="button" class="btn-close-custom" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
                 <div class="modal-body" id="studentDetails">
                     <!-- Student details loaded here -->
@@ -234,5 +365,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Custom JS -->
     <script src="/static/js/app.js"></script>
+    
+    <!-- Vercel Analytics -->
+    <script defer src="https://va.vercel-scripts.com/v1/script.js"></script>
 </body>
 </html>
