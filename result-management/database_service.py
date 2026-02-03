@@ -4,9 +4,16 @@ Handles data loading and ranking logic
 """
 
 import json
-import os
 from pathlib import Path
 from typing import List, Dict, Optional
+
+# Try to import embedded data (for Vercel)
+try:
+    from embedded_data import STUDENT_DATA
+    HAS_EMBEDDED_DATA = True
+except ImportError:
+    STUDENT_DATA = []
+    HAS_EMBEDDED_DATA = False
 
 
 # Branch codes mapping
@@ -17,7 +24,7 @@ BRANCHES = {
     "517": {"code": "AR", "name": "Automation & Robotics"},
 }
 
-# Default filter options (always available)
+# Default filter options
 DEFAULT_BRANCHES = [
     {"code": "519", "short": "AIDS", "name": "Artificial Intelligence & Data Science"},
     {"code": "516", "short": "AIML", "name": "Artificial Intelligence & Machine Learning"},
@@ -28,7 +35,6 @@ DEFAULT_BRANCHES = [
 DEFAULT_SEMESTERS = ["01", "02", "03", "04", "05", "06", "07", "08"]
 DEFAULT_BATCHES = ["2024", "2023", "2022", "2021"]
 
-# Grade to points mapping
 GRADE_POINTS = {"O": 10, "A+": 9, "A": 8, "B+": 7, "B": 6, "C": 5, "P": 4, "F": 0}
 
 
@@ -39,56 +45,57 @@ class DataService:
         self._load_error = None
     
     def _find_data_file(self) -> Optional[Path]:
-        """Find the data file in various possible locations"""
+        """Find JSON data file"""
         current_dir = Path(__file__).resolve().parent
         
-        possible_paths = [
+        paths = [
             current_dir / "data" / "parsed_results.json",
             current_dir / "parsed_results.json",
             current_dir.parent / "data" / "output" / "parsed_results.json",
-            current_dir.parent / "data" / "parsed_results.json",
-            Path("/var/task/result-management/data/parsed_results.json"),
-            Path("/var/task/data/parsed_results.json"),
         ]
         
-        for path in possible_paths:
-            if path and path.exists():
+        for path in paths:
+            if path.exists():
                 return path
-        
         return None
     
     def load_data(self) -> bool:
-        """Load data from JSON file"""
+        """Load data from embedded data or JSON file"""
         if self._loaded:
             return len(self.students) > 0
         
-        file_path = self._find_data_file()
+        raw_data = []
         
-        if not file_path:
-            self._load_error = "Data file not found"
-            self._loaded = True
-            return False
+        # Try embedded data first (for Vercel)
+        if HAS_EMBEDDED_DATA and STUDENT_DATA:
+            raw_data = STUDENT_DATA
+            print(f"✅ Using embedded data: {len(raw_data)} records")
+        else:
+            # Try loading from file
+            file_path = self._find_data_file()
+            if file_path:
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        raw_data = json.load(f)
+                    print(f"✅ Loaded from file: {len(raw_data)} records")
+                except Exception as e:
+                    self._load_error = str(e)
+            else:
+                self._load_error = "No data source found"
         
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                raw_data = json.load(f)
-            
-            self.students = []
-            for record in raw_data:
-                student = self._process_student(record)
-                if student:
-                    self.students.append(student)
-            
-            self._loaded = True
-            return True
-            
-        except Exception as e:
-            self._load_error = str(e)
-            self._loaded = True
-            return False
+        # Process records
+        self.students = []
+        for record in raw_data:
+            student = self._process_student(record)
+            if student:
+                self.students.append(student)
+        
+        self._loaded = True
+        print(f"✅ Processed {len(self.students)} students")
+        return len(self.students) > 0
     
     def _process_student(self, record: Dict) -> Optional[Dict]:
-        """Process and enrich student record"""
+        """Process student record"""
         try:
             roll_no = str(record.get('roll_no', ''))
             branch_code = roll_no[6:9] if len(roll_no) >= 9 else ""
@@ -116,23 +123,48 @@ class DataService:
             return None
     
     def _calculate_sgpa(self, subjects: List, percentage: float) -> float:
-        """Calculate SGPA from subjects"""
+        """Calculate SGPA"""
         total_credits = 0
         weighted_sum = 0.0
         
         for sub in subjects:
             credits = sub.get('credits', 0) or 0
             grade = sub.get('grade', 'F') or 'F'
-            
             if credits > 0:
-                grade_point = GRADE_POINTS.get(grade, 0)
-                weighted_sum += credits * grade_point
+                weighted_sum += credits * GRADE_POINTS.get(grade, 0)
                 total_credits += credits
         
         if total_credits > 0:
             return round(weighted_sum / total_credits, 2)
-        
         return round(percentage / 10, 2) if percentage else 0.0
+    
+    def get_filter_options(self) -> Dict:
+        """Get filter options - always returns options"""
+        if not self._loaded:
+            self.load_data()
+        
+        branches = DEFAULT_BRANCHES.copy()
+        
+        if self.students:
+            semesters = sorted(set(s["semester"] for s in self.students if s.get("semester")))
+            batches = sorted(set(s["batch"] for s in self.students if s.get("batch")), reverse=True)
+            if not semesters:
+                semesters = DEFAULT_SEMESTERS
+            if not batches:
+                batches = DEFAULT_BATCHES
+        else:
+            semesters = DEFAULT_SEMESTERS
+            batches = DEFAULT_BATCHES
+        
+        return {
+            "branches": branches,
+            "semesters": semesters,
+            "batches": batches,
+            "total_students": len(self.students),
+            "data_loaded": len(self.students) > 0,
+            "has_embedded": HAS_EMBEDDED_DATA,
+            "error": self._load_error
+        }
     
     def get_ranklist(
         self,
@@ -164,61 +196,22 @@ class DataService:
         else:
             filtered.sort(key=lambda x: x["percentage"], reverse=not ascending)
         
-        ranklist = []
-        for idx, student in enumerate(filtered):
-            ranklist.append({
-                "rank": idx + 1,
-                "roll_no": student["roll_no"],
-                "name": student["name"],
-                "branch": student["branch"],
-                "semester": student["semester"],
-                "batch": student["batch"],
-                "percentage": student["percentage"],
-                "sgpa": student["sgpa"],
-                "credits": student["credits"]
-            })
+        ranklist = [{
+            "rank": idx + 1,
+            "roll_no": s["roll_no"],
+            "name": s["name"],
+            "branch": s["branch"],
+            "semester": s["semester"],
+            "batch": s["batch"],
+            "percentage": s["percentage"],
+            "sgpa": s["sgpa"],
+            "credits": s["credits"]
+        } for idx, s in enumerate(filtered)]
         
         return {
             "total": len(ranklist),
-            "filters": {
-                "branch": branch,
-                "semester": semester,
-                "batch": batch,
-                "sort_by": sort_by,
-                "order": "ascending" if ascending else "descending"
-            },
+            "filters": {"branch": branch, "semester": semester, "batch": batch},
             "ranklist": ranklist
-        }
-    
-    def get_filter_options(self) -> Dict:
-        """Get available filter options - ALWAYS returns options"""
-        if not self._loaded:
-            self.load_data()
-        
-        # Always return default branches
-        branches = DEFAULT_BRANCHES.copy()
-        
-        # Try to get semesters and batches from data, fallback to defaults
-        if self.students:
-            semesters = sorted(set(s["semester"] for s in self.students if s.get("semester")))
-            batches = sorted(set(s["batch"] for s in self.students if s.get("batch")), reverse=True)
-            
-            # Use defaults if empty
-            if not semesters:
-                semesters = DEFAULT_SEMESTERS
-            if not batches:
-                batches = DEFAULT_BATCHES
-        else:
-            semesters = DEFAULT_SEMESTERS
-            batches = DEFAULT_BATCHES
-        
-        return {
-            "branches": branches,
-            "semesters": semesters,
-            "batches": batches,
-            "total_students": len(self.students),
-            "data_loaded": len(self.students) > 0,
-            "error": self._load_error
         }
     
     def get_student_by_roll(self, roll_no: str) -> Optional[Dict]:
@@ -231,13 +224,8 @@ class DataService:
                 return student
         return None
     
-    def get_stats(
-        self,
-        branch: Optional[str] = None,
-        semester: Optional[str] = None,
-        batch: Optional[str] = None
-    ) -> Dict:
-        """Get statistics for filtered students"""
+    def get_stats(self, branch=None, semester=None, batch=None) -> Dict:
+        """Get statistics"""
         result = self.get_ranklist(branch, semester, batch)
         ranklist = result["ranklist"]
         
@@ -251,11 +239,8 @@ class DataService:
             "total": len(ranklist),
             "avg_sgpa": round(sum(sgpas) / len(sgpas), 2) if sgpas else 0,
             "avg_percentage": round(sum(percentages) / len(percentages), 2) if percentages else 0,
-            "highest_sgpa": max(sgpas) if sgpas else 0,
-            "highest_percentage": max(percentages) if percentages else 0,
             "topper": ranklist[0] if ranklist else None
         }
 
 
-# Singleton
 data_service = DataService()
