@@ -1,0 +1,77 @@
+/* USAR Ranklist - Clean Styles */
+
+body {
+    background: #f5f7fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.card {
+    border: none;
+    border-radius: 12px;
+}
+
+.card-header {
+    border-bottom: 1px solid #eee;
+}
+
+/* Rank Badge */
+.rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    font-weight: bold;
+    background: #e9ecef;
+}
+
+.rank-badge.rank-1 {
+    background: linear-gradient(135deg, #ffd700, #ffb800);
+    color: #000;
+    font-size: 1.2rem;
+}
+
+.rank-badge.rank-2 {
+    background: linear-gradient(135deg, #c0c0c0, #a8a8a8);
+    color: #000;
+    font-size: 1.2rem;
+}
+
+.rank-badge.rank-3 {
+    background: linear-gradient(135deg, #cd7f32, #b8860b);
+    color: #fff;
+    font-size: 1.2rem;
+}
+
+/* SGPA Badge */
+.sgpa-badge {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-weight: 600;
+}
+
+/* Percentage Badge */
+.percentage-badge {
+    background: linear-gradient(135deg, #11998e, #38ef7d);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-weight: 600;
+}
+
+/* Table */
+.table tbody tr:hover {
+    background-color: #f0f4ff !important;
+}
+
+/* Stats cards animation */
+.card {
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
