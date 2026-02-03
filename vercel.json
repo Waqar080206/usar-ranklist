@@ -1,0 +1,19 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "result-management/main.py",
+            "use": "@vercel/python"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/static/(.*)",
+            "dest": "result-management/static/$1"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "result-management/main.py"
+        }
+    ]
+}
