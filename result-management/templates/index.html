@@ -15,6 +15,9 @@
             <span class="navbar-brand mb-0 h1">
                 <i class="fas fa-graduation-cap me-2"></i>USAR Ranklist
             </span>
+            <span class="navbar-text text-white-50">
+                <small>Draft v1.0</small>
+            </span>
         </div>
     </nav>
 
@@ -31,9 +34,7 @@
                         <label class="form-label fw-bold">Branch</label>
                         <select class="form-select" id="branchSelect">
                             <option value="">All Branches</option>
-                            {% for b in branches %}
-                            <option value="{{ b.short }}">{{ b.short }} - {{ b.name }}</option>
-                            {% endfor %}
+                            <!-- Will be populated by JavaScript -->
                         </select>
                     </div>
                     
@@ -42,9 +43,7 @@
                         <label class="form-label fw-bold">Semester</label>
                         <select class="form-select" id="semesterSelect">
                             <option value="">All</option>
-                            {% for s in semesters %}
-                            <option value="{{ s }}">Sem {{ s }}</option>
-                            {% endfor %}
+                            <!-- Will be populated by JavaScript -->
                         </select>
                     </div>
                     
@@ -53,9 +52,7 @@
                         <label class="form-label fw-bold">Batch</label>
                         <select class="form-select" id="batchSelect">
                             <option value="">All</option>
-                            {% for b in batches %}
-                            <option value="{{ b }}">{{ b }}</option>
-                            {% endfor %}
+                            <!-- Will be populated by JavaScript -->
                         </select>
                     </div>
                     
@@ -159,6 +156,66 @@
             </div>
         </div>
     </div>
+
+    <!-- YOUR EXISTING DISCLAIMER AND FOOTER HERE - DON'T CHANGE -->
+
+    <!-- Disclaimer Section -->
+    <div class="disclaimer-section mt-5">
+        <div class="container">
+            <div class="disclaimer-card">
+                <div class="disclaimer-icon">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                <h5>Disclaimer</h5>
+                <p>
+                    This website is created by <strong>Waqar Akhtar</strong> solely for the <strong>convenience</strong> 
+                    of USAR students to view their results and rankings. This is <strong>not an official website</strong> 
+                    and is not affiliated with GGSIPU or USAR.
+                </p>
+                <p>
+                    The idea and concept of this site is inspired by 
+                    <a href="https://www.ipuranklist.com" target="_blank" rel="noopener">
+                        <i class="fas fa-external-link-alt me-1"></i>IPU Ranklist
+                    </a> 
+                    made by 
+                    <a href="https://github.com/ankushgarg1998/" target="_blank" rel="noopener">
+                        <i class="fab fa-github me-1"></i>Ankush Garg
+                    </a>.
+                </p>
+                <p class="text-muted small mb-3">
+                    All data is sourced from publicly available IPU examination results.
+                </p>
+                <div class="disclaimer-badges">
+                    <span class="badge bg-warning text-dark">
+                        <i class="fas fa-flask me-1"></i>Draft v1.0
+                    </span>
+                    <span class="badge bg-info">
+                        <i class="fas fa-database me-1"></i>Public Data
+                    </span>
+                    <span class="badge bg-secondary">
+                        <i class="fas fa-sync-alt me-1"></i>Will be updated
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <!-- Footer Bottom -->
+        <div class="footer-bottom">
+            <div class="container">
+                <div class="footer-bottom-content">
+                    <p class="footer-copyright">
+                        Made with <span class="heart"><i class="fas fa-heart"></i></span> by 
+                        <a href="https://waqar.tech" target="_blank" rel="noopener">Waqar Akhtar</a>
+                    </p>
+                    <p class="footer-credits">
+                        Contact: <a href="https://github.com/Waqar080206/" target="_blank" rel="noopener">GitHub</a> & 
+                        <a href="https://www.waqar.tech" target="_blank" rel="noopener">Website</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
 
     <!-- Student Modal -->
     <div class="modal fade" id="studentModal" tabindex="-1">

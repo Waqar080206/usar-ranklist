@@ -2,6 +2,66 @@
 
 let currentData = [];
 
+// Load filters when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Loading filters...');
+    loadFilters();
+});
+
+// Load filter options from API
+async function loadFilters() {
+    try {
+        const response = await fetch('/api/filters');
+        const data = await response.json();
+        
+        console.log('Filters loaded:', data);
+        
+        // Populate Branch dropdown
+        const branchSelect = document.getElementById('branchSelect');
+        branchSelect.innerHTML = '<option value="">All Branches</option>';
+        
+        if (data.branches && data.branches.length > 0) {
+            data.branches.forEach(branch => {
+                const option = document.createElement('option');
+                option.value = branch.short;
+                option.textContent = `${branch.short} - ${branch.name}`;
+                branchSelect.appendChild(option);
+            });
+        }
+        
+        // Populate Semester dropdown
+        const semesterSelect = document.getElementById('semesterSelect');
+        semesterSelect.innerHTML = '<option value="">All</option>';
+        
+        if (data.semesters && data.semesters.length > 0) {
+            data.semesters.forEach(sem => {
+                const option = document.createElement('option');
+                option.value = sem;
+                option.textContent = `Sem ${sem}`;
+                semesterSelect.appendChild(option);
+            });
+        }
+        
+        // Populate Batch dropdown
+        const batchSelect = document.getElementById('batchSelect');
+        batchSelect.innerHTML = '<option value="">All</option>';
+        
+        if (data.batches && data.batches.length > 0) {
+            data.batches.forEach(batch => {
+                const option = document.createElement('option');
+                option.value = batch;
+                option.textContent = batch;
+                batchSelect.appendChild(option);
+            });
+        }
+        
+        console.log('Filters populated successfully');
+        
+    } catch (error) {
+        console.error('Error loading filters:', error);
+    }
+}
+
 // Load ranklist based on filters
 async function loadRanklist() {
     const branch = document.getElementById('branchSelect').value;
@@ -10,24 +70,26 @@ async function loadRanklist() {
     const sortBy = document.getElementById('sortSelect').value;
     const order = document.getElementById('orderSelect').value;
     
-    // Build URL - using /api/ranklist endpoint
+    // Build URL
     let url = `/api/ranklist?sort_by=${sortBy}&order=${order}`;
     if (branch) url += `&branch=${branch}`;
     if (semester) url += `&semester=${semester}`;
     if (batch) url += `&batch=${batch}`;
     
-    console.log('Fetching:', url);
+    console.log('Fetching ranklist:', url);
     
     try {
         const response = await fetch(url);
         const data = await response.json();
+        
+        console.log('Ranklist loaded:', data.total, 'students');
         
         currentData = data.ranklist || [];
         displayRanklist(data);
         displayStats(data);
         
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error loading ranklist:', error);
         alert('Failed to load ranklist');
     }
 }
@@ -56,6 +118,9 @@ function displayRanklist(data) {
                           student.rank === 3 ? '🥉' : student.rank;
         const rankClass = student.rank <= 3 ? `rank-${student.rank}` : '';
         
+        const sgpa = typeof student.sgpa === 'number' ? student.sgpa.toFixed(2) : student.sgpa;
+        const percentage = typeof student.percentage === 'number' ? student.percentage.toFixed(2) : student.percentage;
+        
         return `
             <tr onclick="viewStudent('${student.roll_no}')" style="cursor: pointer;">
                 <td class="text-center">
@@ -66,8 +131,8 @@ function displayRanklist(data) {
                 <td><span class="badge bg-${getBranchColor(student.branch)}">${student.branch}</span></td>
                 <td class="text-center">${student.semester}</td>
                 <td class="text-center">${student.batch}</td>
-                <td class="text-center"><span class="sgpa-badge">${student.sgpa.toFixed(2)}</span></td>
-                <td class="text-center"><span class="percentage-badge">${student.percentage.toFixed(2)}%</span></td>
+                <td class="text-center"><span class="sgpa-badge">${sgpa}</span></td>
+                <td class="text-center"><span class="percentage-badge">${percentage}%</span></td>
             </tr>
         `;
     }).join('');
@@ -82,7 +147,6 @@ function displayStats(data) {
         return;
     }
     
-    // Calculate stats from ranklist
     const total = ranklist.length;
     const sgpas = ranklist.map(s => s.sgpa).filter(s => s > 0);
     const percentages = ranklist.map(s => s.percentage).filter(p => p > 0);
@@ -110,6 +174,9 @@ async function viewStudent(rollNo) {
         
         const student = await response.json();
         
+        const sgpa = typeof student.sgpa === 'number' ? student.sgpa.toFixed(2) : student.sgpa;
+        const percentage = typeof student.percentage === 'number' ? student.percentage.toFixed(2) : student.percentage;
+        
         document.getElementById('studentDetails').innerHTML = `
             <div class="text-center mb-3">
                 <h4>${student.name}</h4>
@@ -118,19 +185,19 @@ async function viewStudent(rollNo) {
             <div class="row text-center mb-3">
                 <div class="col-4">
                     <div class="p-2 bg-light rounded">
-                        <h5 class="text-primary mb-0">${student.sgpa.toFixed(2)}</h5>
+                        <h5 class="text-primary mb-0">${sgpa}</h5>
                         <small>SGPA</small>
                     </div>
                 </div>
                 <div class="col-4">
                     <div class="p-2 bg-light rounded">
-                        <h5 class="text-success mb-0">${student.percentage.toFixed(2)}%</h5>
+                        <h5 class="text-success mb-0">${percentage}%</h5>
                         <small>Percentage</small>
                     </div>
                 </div>
                 <div class="col-4">
                     <div class="p-2 bg-light rounded">
-                        <h5 class="text-info mb-0">${student.credits}</h5>
+                        <h5 class="text-info mb-0">${student.credits || 0}</h5>
                         <small>Credits</small>
                     </div>
                 </div>
@@ -139,7 +206,7 @@ async function viewStudent(rollNo) {
             <p><strong>Branch:</strong> ${student.branch_name || student.branch}</p>
             <p><strong>Semester:</strong> ${student.semester}</p>
             <p><strong>Batch:</strong> ${student.batch}</p>
-            <p><strong>Total Marks:</strong> ${student.total_marks} / ${student.max_marks}</p>
+            <p><strong>Total Marks:</strong> ${student.total_marks || 0} / ${student.max_marks || 0}</p>
         `;
         
         new bootstrap.Modal(document.getElementById('studentModal')).show();
@@ -170,7 +237,14 @@ function exportToCSV() {
     
     const headers = ['Rank', 'Roll No', 'Name', 'Branch', 'Semester', 'Batch', 'SGPA', 'Percentage'];
     const rows = currentData.map(s => [
-        s.rank, s.roll_no, s.name, s.branch, s.semester, s.batch, s.sgpa.toFixed(2), s.percentage.toFixed(2)
+        s.rank, 
+        s.roll_no, 
+        s.name, 
+        s.branch, 
+        s.semester, 
+        s.batch, 
+        typeof s.sgpa === 'number' ? s.sgpa.toFixed(2) : s.sgpa,
+        typeof s.percentage === 'number' ? s.percentage.toFixed(2) : s.percentage
     ]);
     
     let csv = headers.join(',') + '\n';
@@ -186,10 +260,3 @@ function exportToCSV() {
     a.click();
     window.URL.revokeObjectURL(url);
 }
-
-// Auto-load on page ready (optional)
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('USAR Ranklist loaded');
-    // Uncomment below to auto-load all students on page load:
-    // loadRanklist();
-});

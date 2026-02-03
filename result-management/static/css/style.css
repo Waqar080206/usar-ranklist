@@ -3,6 +3,13 @@
 body {
     background: #f5f7fa;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.container.py-4 {
+    flex: 1;
 }
 
 .card {
@@ -74,4 +81,301 @@ body {
 
 .card:hover {
     transform: translateY(-2px);
+}
+
+/* Disclaimer Section */
+.disclaimer-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 40px 0;
+    border-top: 1px solid #dee2e6;
+}
+
+.disclaimer-card {
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    position: relative;
+    border-left: 4px solid #ffc107;
+}
+
+.disclaimer-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #ffc107, #ff9800);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: -50px auto 20px auto;
+    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+}
+
+.disclaimer-icon i {
+    font-size: 28px;
+    color: white;
+}
+
+.disclaimer-card h5 {
+    color: #333;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+.disclaimer-card p {
+    color: #666;
+    line-height: 1.7;
+    margin-bottom: 12px;
+}
+
+.disclaimer-card a {
+    color: #4361ee;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.disclaimer-card a:hover {
+    color: #3451d1;
+    text-decoration: underline;
+}
+
+.disclaimer-badges {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.disclaimer-badges .badge {
+    font-size: 0.85rem;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+/* Footer */
+.footer {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: #fff;
+    padding: 0;
+    margin-top: auto;
+}
+
+.footer-main {
+    padding: 40px 0 30px;
+}
+
+.footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.footer-brand-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #4361ee, #7c3aed);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.footer-brand h4 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1.4rem;
+}
+
+.footer-brand p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
+
+.footer-text {
+    color: #94a3b8;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    margin-bottom: 20px;
+}
+
+.footer-heading {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.footer-links-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-links-list li {
+    margin-bottom: 12px;
+}
+
+.footer-links-list a {
+    color: #94a3b8;
+    text-decoration: none;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.footer-links-list a:hover {
+    color: #4361ee;
+    padding-left: 5px;
+}
+
+.footer-links-list a i {
+    font-size: 0.9rem;
+}
+
+/* Social Icons */
+.footer-social {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.social-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: #fff;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.social-icon.github {
+    background: #333;
+}
+
+.social-icon.github:hover {
+    background: #6e5494;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(110, 84, 148, 0.4);
+}
+
+.social-icon.website {
+    background: linear-gradient(135deg, #4361ee, #7c3aed);
+}
+
+.social-icon.website:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(67, 97, 238, 0.4);
+}
+
+/* Footer Bottom */
+.footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 20px 0;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.footer-bottom-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.footer-copyright {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.footer-copyright .heart {
+    color: #ef4444;
+    animation: heartbeat 1.5s infinite;
+}
+
+.footer-copyright a {
+    color: #4361ee;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.footer-copyright a:hover {
+    text-decoration: underline;
+}
+
+.footer-credits {
+    color: #64748b;
+    font-size: 0.8rem;
+    margin: 0;
+}
+
+.footer-credits a {
+    color: #64748b;
+    text-decoration: none;
+}
+
+.footer-credits a:hover {
+    color: #4361ee;
+}
+
+@keyframes heartbeat {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .disclaimer-card {
+        padding: 20px 15px;
+    }
+    
+    .disclaimer-badges {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .disclaimer-icon {
+        width: 50px;
+        height: 50px;
+        margin-top: -40px;
+    }
+    
+    .disclaimer-icon i {
+        font-size: 22px;
+    }
+    
+    .footer-main {
+        text-align: center;
+    }
+    
+    .footer-brand {
+        justify-content: center;
+    }
+    
+    .footer-social {
+        justify-content: center;
+    }
+    
+    .footer-bottom-content {
+        justify-content: center;
+        text-align: center;
+    }
 }
