@@ -1,5 +1,4 @@
 // USAR Ranklist - Frontend Logic
-
 let currentData = [];
 
 // Load filters when page loads
@@ -7,6 +6,20 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 USAR Ranklist loaded');
     loadFilters();
 });
+
+// Get default filters (fallback)
+function getDefaultFilters() {
+    return {
+        branches: [
+            { code: "519", short: "AIDS", name: "Artificial Intelligence & Data Science" },
+            { code: "516", short: "AIML", name: "Artificial Intelligence & Machine Learning" },
+            { code: "520", short: "IIOT", name: "Industrial Internet of Things" },
+            { code: "517", short: "AR", name: "Automation & Robotics" }
+        ],
+        semesters: ["01", "02", "03", "04", "05", "06", "07", "08"],
+        batches: ["2024", "2023", "2022", "2021"]
+    };
+}
 
 // Load filter options from API
 async function loadFilters() {
@@ -26,23 +39,9 @@ async function loadFilters() {
         
     } catch (error) {
         console.error('❌ API Error:', error);
-        // Use hardcoded defaults
+        console.log('📌 Using default filters');
         populateFilters(getDefaultFilters());
     }
-}
-
-// Get default filters (fallback)
-function getDefaultFilters() {
-    return {
-        branches: [
-            { code: "519", short: "AIDS", name: "Artificial Intelligence & Data Science" },
-            { code: "516", short: "AIML", name: "Artificial Intelligence & Machine Learning" },
-            { code: "520", short: "IIOT", name: "Industrial Internet of Things" },
-            { code: "517", short: "AR", name: "Automation & Robotics" }
-        ],
-        semesters: ["01", "02", "03", "04", "05", "06", "07", "08"],
-        batches: ["2024", "2023", "2022", "2021"]
-    };
 }
 
 // Populate filter dropdowns
@@ -55,8 +54,8 @@ function populateFilters(data) {
         const branches = data.branches || getDefaultFilters().branches;
         branches.forEach(branch => {
             const option = document.createElement('option');
-            option.value = branch.short;
-            option.textContent = `${branch.short} - ${branch.name}`;
+            option.value = branch.short || branch.code;
+            option.textContent = `${branch.short || branch.code} - ${branch.name}`;
             branchSelect.appendChild(option);
         });
         console.log(`✅ Branch options: ${branches.length}`);
@@ -95,6 +94,12 @@ function populateFilters(data) {
     console.log('✅ All filters populated');
 }
 
+// Filter by branch (from footer links)
+function filterBranch(branch) {
+    document.getElementById('branchSelect').value = branch;
+    loadRanklist();
+}
+
 // Load ranklist based on filters
 async function loadRanklist() {
     const branch = document.getElementById('branchSelect').value;
@@ -109,6 +114,16 @@ async function loadRanklist() {
     if (batch) url += `&batch=${batch}`;
     
     console.log('📥 Fetching:', url);
+    
+    // Show loading
+    document.getElementById('ranklistBody').innerHTML = `
+        <tr>
+            <td colspan="8" class="loading">
+                <i class="fas fa-spinner fa-spin d-block"></i>
+                <p>Loading ranklist...</p>
+            </td>
+        </tr>
+    `;
     
     try {
         const response = await fetch(url);
@@ -126,7 +141,15 @@ async function loadRanklist() {
         
     } catch (error) {
         console.error('❌ Error:', error);
-        alert('Failed to load ranklist');
+        document.getElementById('ranklistBody').innerHTML = `
+            <tr>
+                <td colspan="8" class="empty-state">
+                    <i class="fas fa-exclamation-triangle d-block text-warning"></i>
+                    <h5>Failed to load ranklist</h5>
+                    <p>Please try again later</p>
+                </td>
+            </tr>
+        `;
     }
 }
 
@@ -138,9 +161,10 @@ function displayRanklist(data) {
     if (ranklist.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="8" class="text-center text-muted py-5">
-                    <i class="fas fa-search fa-2x mb-2 d-block"></i>
-                    No students found for selected filters
+                <td colspan="8" class="empty-state">
+                    <i class="fas fa-search d-block"></i>
+                    <h5>No students found</h5>
+                    <p>Try different filter options</p>
                 </td>
             </tr>
         `;
@@ -158,7 +182,7 @@ function displayRanklist(data) {
         const percentage = typeof student.percentage === 'number' ? student.percentage.toFixed(2) : student.percentage;
         
         return `
-            <tr onclick="viewStudent('${student.roll_no}')" style="cursor: pointer;">
+            <tr onclick="viewStudent('${student.roll_no}')">
                 <td class="text-center">
                     <span class="rank-badge ${rankClass}">${rankBadge}</span>
                 </td>
@@ -213,6 +237,9 @@ async function viewStudent(rollNo) {
         
         document.getElementById('studentDetails').innerHTML = `
             <div class="text-center mb-3">
+                <div class="stat-icon primary mx-auto mb-3">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
                 <h4>${student.name}</h4>
                 <p class="text-muted">${student.roll_no}</p>
             </div>

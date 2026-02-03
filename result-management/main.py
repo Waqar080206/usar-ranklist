@@ -5,10 +5,11 @@ USAR Ranklist - Main Server
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 from typing import Optional
+import os
 
 from database_service import data_service
 
@@ -27,13 +28,31 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Static files
+# Static files - mount with absolute path
 static_path = BASE_DIR / "static"
 if static_path.exists():
     app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
 
 # Templates
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+
+
+# Explicit static file routes for Vercel
+@app.get("/static/css/style.css")
+async def get_css():
+    css_path = BASE_DIR / "static" / "css" / "style.css"
+    if css_path.exists():
+        return FileResponse(css_path, media_type="text/css")
+    raise HTTPException(status_code=404, detail="CSS not found")
+
+
+@app.get("/static/js/app.js")
+async def get_js():
+    js_path = BASE_DIR / "static" / "js" / "app.js"
+    if js_path.exists():
+        return FileResponse(js_path, media_type="application/javascript")
+    raise HTTPException(status_code=404, detail="JS not found")
+
 
 # Load data on startup
 @app.on_event("startup")
@@ -91,11 +110,13 @@ async def health():
     return {
         "status": "ok",
         "students": len(data_service.students),
-        "data_loaded": data_service._loaded
+        "data_loaded": data_service._loaded,
+        "static_path": str(static_path),
+        "static_exists": static_path.exists()
     }
 
 
-# For Vercel - export the app
+# For Vercel
 handler = app
 
 
