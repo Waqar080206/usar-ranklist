@@ -10,6 +10,7 @@ def main():
     current_dir = Path(__file__).resolve().parent
     paths = [
         current_dir / "data" / "parsed_results.json",
+        
         current_dir.parent / "data" / "output" / "parsed_results.json",
     ]
     
