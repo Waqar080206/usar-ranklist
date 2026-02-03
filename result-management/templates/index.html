@@ -3,60 +3,368 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>USAR Ranklist</title>
+    <title>USAR Ranklist | Student Rankings</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-    <link href="/static/css/style.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Inline Backup CSS (in case external CSS fails) -->
     <style>
-        /* Footer Backup Styles */
+        /* ===== ROOT VARIABLES ===== */
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3651d4;
+            --secondary: #7c3aed;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --gray: #64748b;
+            --gradient: linear-gradient(135deg, #4361ee 0%, #7c3aed 100%);
+        }
+
+        /* ===== BASE STYLES ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ===== NAVBAR ===== */
+        .navbar-custom {
+            background: var(--gradient);
+            padding: 1rem 0;
+            box-shadow: 0 4px 20px rgba(67, 97, 238, 0.3);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: white !important;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-icon {
+            width: 45px;
+            height: 45px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        /* ===== HERO SECTION ===== */
+        .hero-section {
+            background: var(--gradient);
+            padding: 60px 0 80px;
+            color: white;
+            text-align: center;
+            margin-top: -1px;
+        }
+
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .hero-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* ===== FILTER CARD ===== */
+        .filter-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: -50px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 10;
+        }
+
+        .filter-title {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-title i {
+            color: var(--primary);
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: var(--gray);
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+
+        .form-select, .form-control {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        .form-select:focus, .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.1);
+        }
+
+        .btn-search {
+            background: var(--gradient);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 30px;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .btn-search:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(67, 97, 238, 0.4);
+            color: white;
+        }
+
+        .btn-export {
+            background: var(--success);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 30px;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .btn-export:hover {
+            background: #0ea271;
+            transform: translateY(-2px);
+            color: white;
+        }
+
+        /* ===== STATS ROW ===== */
+        .stats-row {
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+            height: 100%;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin: 0 auto 15px;
+        }
+
+        .stat-icon.primary { background: rgba(67, 97, 238, 0.1); color: var(--primary); }
+        .stat-icon.success { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .stat-icon.warning { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+        .stat-icon.secondary { background: rgba(124, 58, 237, 0.1); color: var(--secondary); }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .stat-label {
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        /* ===== TABLE ===== */
+        .table-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        .table-header {
+            background: var(--dark);
+            color: white;
+            padding: 20px 25px;
+        }
+
+        .table-header h5 {
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .table {
+            margin: 0;
+        }
+
+        .table thead th {
+            background: #f1f5f9;
+            border: none;
+            padding: 15px;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table tbody tr {
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .table tbody td {
+            padding: 15px;
+            vertical-align: middle;
+            border-color: #f1f5f9;
+        }
+
+        .rank-badge {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            background: #f1f5f9;
+            color: var(--dark);
+        }
+
+        .rank-badge.rank-1 {
+            background: linear-gradient(135deg, #ffd700, #ffb700);
+            color: #1a1a1a;
+            font-size: 1.2rem;
+        }
+
+        .rank-badge.rank-2 {
+            background: linear-gradient(135deg, #e8e8e8, #c0c0c0);
+            color: #1a1a1a;
+            font-size: 1.2rem;
+        }
+
+        .rank-badge.rank-3 {
+            background: linear-gradient(135deg, #cd7f32, #b87333);
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .sgpa-badge {
+            background: var(--gradient);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .percentage-badge {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        /* ===== FOOTER ===== */
         .footer {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             color: #fff;
             padding: 0;
             margin-top: auto;
         }
-        
+
         .footer-main {
             padding: 40px 0 30px;
         }
-        
+
         .footer-brand {
             display: flex;
             align-items: center;
             gap: 12px;
             margin-bottom: 15px;
         }
-        
+
         .footer-brand-icon {
             width: 50px;
             height: 50px;
-            background: linear-gradient(135deg, #4361ee, #7c3aed);
+            background: var(--gradient);
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.5rem;
         }
-        
+
         .footer-brand h4 {
             margin: 0;
             font-weight: 700;
         }
-        
+
         .footer-brand p {
             margin: 0;
             font-size: 0.85rem;
             color: #94a3b8;
         }
-        
+
         .footer-text {
             color: #94a3b8;
             font-size: 0.95rem;
             line-height: 1.7;
         }
-        
+
         .footer-heading {
             font-size: 1rem;
             font-weight: 600;
@@ -64,33 +372,33 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-        
+
         .footer-links-list {
             list-style: none;
             padding: 0;
             margin: 0;
         }
-        
+
         .footer-links-list li {
             margin-bottom: 12px;
         }
-        
+
         .footer-links-list a {
             color: #94a3b8;
             text-decoration: none;
             transition: all 0.3s;
         }
-        
+
         .footer-links-list a:hover {
-            color: #4361ee;
+            color: var(--primary);
         }
-        
+
         .footer-social {
             display: flex;
             gap: 12px;
             margin-top: 10px;
         }
-        
+
         .social-icon {
             width: 44px;
             height: 44px;
@@ -103,30 +411,30 @@
             text-decoration: none;
             transition: all 0.3s ease;
         }
-        
+
         .social-icon.github {
             background: #333;
         }
-        
+
         .social-icon.github:hover {
             background: #6e5494;
             transform: translateY(-3px);
         }
-        
+
         .social-icon.website {
-            background: linear-gradient(135deg, #4361ee, #7c3aed);
+            background: var(--gradient);
         }
-        
+
         .social-icon.website:hover {
             transform: translateY(-3px);
         }
-        
+
         .footer-bottom {
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             padding: 20px 0;
             background: rgba(0, 0, 0, 0.2);
         }
-        
+
         .footer-bottom-content {
             display: flex;
             justify-content: space-between;
@@ -134,252 +442,289 @@
             flex-wrap: wrap;
             gap: 15px;
         }
-        
+
         .footer-copyright {
             color: #94a3b8;
             font-size: 0.9rem;
             margin: 0;
         }
-        
+
         .footer-copyright a {
-            color: #4361ee;
+            color: var(--primary);
             text-decoration: none;
             font-weight: 600;
         }
-        
+
         .footer-credits {
             color: #64748b;
             font-size: 0.8rem;
             margin: 0;
         }
-        
-        .footer-credits a {
-            color: #64748b;
-            text-decoration: none;
-        }
-        
+
         @keyframes heartbeat {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.2); }
         }
-        
+
         .footer-copyright .heart {
             color: #ef4444;
             animation: heartbeat 1.5s infinite;
+            display: inline-block;
         }
-        
+
+        /* ===== MODAL ===== */
+        .modal-content {
+            border: none;
+            border-radius: 20px;
+        }
+
+        .modal-header {
+            background: var(--gradient);
+            color: white;
+            border-radius: 20px 20px 0 0;
+            border: none;
+        }
+
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
+            .hero-title { font-size: 1.8rem; }
+            .hero-section { padding: 40px 0 60px; }
+            .filter-card { padding: 20px; margin-top: -30px; }
+            .stat-card { margin-bottom: 15px; }
+            .table-responsive { font-size: 0.85rem; }
             .footer-main { text-align: center; }
             .footer-brand { justify-content: center; }
             .footer-social { justify-content: center; }
             .footer-bottom-content { justify-content: center; text-align: center; }
         }
+
+        /* ===== LOADING ===== */
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: var(--gray);
+        }
+
+        .loading i {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--gray);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <nav class="navbar navbar-dark bg-primary">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-custom">
         <div class="container">
-            <span class="navbar-brand mb-0 h1">
-                <i class="fas fa-graduation-cap me-2"></i>USAR Ranklist
-            </span>
-            <span class="navbar-text text-white-50">
-                <small>Draft v1.0</small>
-            </span>
+            <a class="navbar-brand" href="/">
+                <div class="brand-icon">🎓</div>
+                <div>
+                    <span>USAR Ranklist</span>
+                </div>
+            </a>
         </div>
     </nav>
 
-    <div class="container py-4">
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <h1 class="hero-title">Student Ranklist</h1>
+            <p class="hero-subtitle">University School of Automation & Robotics, GGSIPU</p>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="container py-4">
         <!-- Filter Card -->
-        <div class="card mb-4 shadow-sm">
-            <div class="card-header bg-white">
-                <h5 class="mb-0"><i class="fas fa-filter me-2 text-primary"></i>Select Filters</h5>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <!-- Branch -->
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold">Branch</label>
-                        <select class="form-select" id="branchSelect">
-                            <option value="">All Branches</option>
-                            <!-- Will be populated by JavaScript -->
-                        </select>
-                    </div>
-                    
-                    <!-- Semester -->
-                    <div class="col-md-2">
-                        <label class="form-label fw-bold">Semester</label>
-                        <select class="form-select" id="semesterSelect">
-                            <option value="">All</option>
-                            <!-- Will be populated by JavaScript -->
-                        </select>
-                    </div>
-                    
-                    <!-- Batch -->
-                    <div class="col-md-2">
-                        <label class="form-label fw-bold">Batch</label>
-                        <select class="form-select" id="batchSelect">
-                            <option value="">All</option>
-                            <!-- Will be populated by JavaScript -->
-                        </select>
-                    </div>
-                    
-                    <!-- Sort By -->
-                    <div class="col-md-2">
-                        <label class="form-label fw-bold">Sort By</label>
-                        <select class="form-select" id="sortSelect">
-                            <option value="sgpa">SGPA</option>
-                            <option value="percentage">Percentage</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Order -->
-                    <div class="col-md-2">
-                        <label class="form-label fw-bold">Order</label>
-                        <select class="form-select" id="orderSelect">
-                            <option value="desc">High → Low</option>
-                            <option value="asc">Low → High</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Button -->
-                    <div class="col-md-1 d-flex align-items-end">
-                        <button class="btn btn-primary w-100" onclick="loadRanklist()">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
+        <div class="filter-card">
+            <h5 class="filter-title"><i class="fas fa-filter"></i> Filter Students</h5>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Branch</label>
+                    <select class="form-select" id="branchSelect">
+                        <option value="">All Branches</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Semester</label>
+                    <select class="form-select" id="semesterSelect">
+                        <option value="">All</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Batch</label>
+                    <select class="form-select" id="batchSelect">
+                        <option value="">All</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Sort By</label>
+                    <select class="form-select" id="sortSelect">
+                        <option value="sgpa">SGPA</option>
+                        <option value="percentage">Percentage</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label">Order</label>
+                    <select class="form-select" id="orderSelect">
+                        <option value="desc">High→Low</option>
+                        <option value="asc">Low→High</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label">&nbsp;</label>
+                    <button class="btn btn-search" onclick="loadRanklist()">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label">&nbsp;</label>
+                    <button class="btn btn-export" onclick="exportToCSV()">
+                        <i class="fas fa-download"></i>
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- Stats Cards -->
-        <div class="row g-3 mb-4" id="statsRow" style="display: none;">
-            <div class="col-md-3">
-                <div class="card bg-primary text-white h-100">
-                    <div class="card-body text-center">
-                        <h3 id="totalStudents">0</h3>
-                        <small>Total Students</small>
-                    </div>
+        <!-- Stats Row -->
+        <div class="row stats-row" id="statsRow" style="display: none;">
+            <div class="col-md-3 col-6">
+                <div class="stat-card">
+                    <div class="stat-icon primary"><i class="fas fa-users"></i></div>
+                    <div class="stat-value" id="totalStudents">0</div>
+                    <div class="stat-label">Total Students</div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card bg-success text-white h-100">
-                    <div class="card-body text-center">
-                        <h3 id="avgSgpa">0</h3>
-                        <small>Average SGPA</small>
-                    </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-card">
+                    <div class="stat-icon success"><i class="fas fa-chart-line"></i></div>
+                    <div class="stat-value" id="avgSgpa">0</div>
+                    <div class="stat-label">Avg SGPA</div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card bg-info text-white h-100">
-                    <div class="card-body text-center">
-                        <h3 id="avgPercentage">0%</h3>
-                        <small>Average %</small>
-                    </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-card">
+                    <div class="stat-icon warning"><i class="fas fa-percentage"></i></div>
+                    <div class="stat-value" id="avgPercentage">0%</div>
+                    <div class="stat-label">Avg Percentage</div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card bg-warning h-100">
-                    <div class="card-body text-center">
-                        <h3 id="topperName">-</h3>
-                        <small>🏆 Topper</small>
-                    </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-card">
+                    <div class="stat-icon secondary"><i class="fas fa-trophy"></i></div>
+                    <div class="stat-value" id="topperName">-</div>
+                    <div class="stat-label">Topper</div>
                 </div>
             </div>
         </div>
 
         <!-- Ranklist Table -->
-        <div class="card shadow-sm">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="fas fa-list-ol me-2 text-primary"></i>Ranklist</h5>
-                <button class="btn btn-success btn-sm" onclick="exportToCSV()">
-                    <i class="fas fa-download me-1"></i>Export CSV
-                </button>
+        <div class="table-card">
+            <div class="table-header">
+                <h5><i class="fas fa-list-ol me-2"></i>Ranklist</h5>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0" id="ranklistTable">
-                        <thead class="table-dark">
-                            <tr>
-                                <th class="text-center" style="width: 60px;">Rank</th>
-                                <th>Roll No</th>
-                                <th>Name</th>
-                                <th>Branch</th>
-                                <th class="text-center">Sem</th>
-                                <th class="text-center">Batch</th>
-                                <th class="text-center">SGPA</th>
-                                <th class="text-center">Percentage</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ranklistBody">
-                            <tr>
-                                <td colspan="8" class="text-center text-muted py-5">
-                                    <i class="fas fa-arrow-up fa-2x mb-2 d-block"></i>
-                                    Select filters and click Search to view ranklist
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th class="text-center">Rank</th>
+                            <th>Roll No</th>
+                            <th>Name</th>
+                            <th>Branch</th>
+                            <th class="text-center">Sem</th>
+                            <th class="text-center">Batch</th>
+                            <th class="text-center">SGPA</th>
+                            <th class="text-center">Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ranklistBody">
+                        <tr>
+                            <td colspan="8" class="empty-state">
+                                <i class="fas fa-search d-block"></i>
+                                <h5>Select filters and click Search</h5>
+                                <p>Choose branch, semester, or batch to view ranklist</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-main">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-4 mb-4 mb-lg-0">
+                        <div class="footer-brand">
+                            <div class="footer-brand-icon">🎓</div>
+                            <div>
+                                <h4>USAR Ranklist</h4>
+                                <p>GGSIPU, New Delhi</p>
+                            </div>
+                        </div>
+                        <p class="footer-text">
+                            A comprehensive platform to view and analyze student rankings 
+                            for University School of Automation & Robotics.
+                        </p>
+                    </div>
+                    <div class="col-lg-2 col-md-4 mb-4 mb-md-0">
+                        <h6 class="footer-heading">Quick Links</h6>
+                        <ul class="footer-links-list">
+                            <li><a href="/">Home</a></li>
+                            <li><a href="#" onclick="loadRanklist()">Ranklist</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-3 col-md-4 mb-4 mb-md-0">
+                        <h6 class="footer-heading">Branches</h6>
+                        <ul class="footer-links-list">
+                            <li><a href="#" onclick="filterBranch('AIDS')">AI & Data Science</a></li>
+                            <li><a href="#" onclick="filterBranch('AIML')">AI & Machine Learning</a></li>
+                            <li><a href="#" onclick="filterBranch('IIOT')">Industrial IoT</a></li>
+                            <li><a href="#" onclick="filterBranch('AR')">Automation & Robotics</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-3 col-md-4">
+                        <h6 class="footer-heading">Connect</h6>
+                        <div class="footer-social">
+                            <a href="https://github.com" target="_blank" class="social-icon github">
+                                <i class="fab fa-github"></i>
+                            </a>
+                            <a href="http://ipu.ac.in" target="_blank" class="social-icon website">
+                                <i class="fas fa-globe"></i>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- YOUR EXISTING DISCLAIMER AND FOOTER HERE - DON'T CHANGE -->
-
-    <!-- Disclaimer Section -->
-    <div class="disclaimer-section mt-5">
-        <div class="container">
-            <div class="disclaimer-card">
-                <div class="disclaimer-icon">
-                    <i class="fas fa-info-circle"></i>
-                </div>
-                <h5>Disclaimer</h5>
-                <p>
-                    This website is created by <strong>Waqar Akhtar</strong> solely for the <strong>convenience</strong> 
-                    of USAR students to view their results and rankings. This is <strong>not an official website</strong> 
-                    and is not affiliated with GGSIPU or USAR.
-                </p>
-                <p>
-                    The idea and concept of this site is inspired by 
-                    <a href="https://www.ipuranklist.com" target="_blank" rel="noopener">
-                        <i class="fas fa-external-link-alt me-1"></i>IPU Ranklist
-                    </a> 
-                    made by 
-                    <a href="https://github.com/ankushgarg1998/" target="_blank" rel="noopener">
-                        <i class="fab fa-github me-1"></i>Ankush Garg
-                    </a>.
-                </p>
-                <p class="text-muted small mb-3">
-                    All data is sourced from publicly available IPU examination results.
-                </p>
-                <div class="disclaimer-badges">
-                    <span class="badge bg-warning text-dark">
-                        <i class="fas fa-flask me-1"></i>Draft v1.0
-                    </span>
-                    <span class="badge bg-info">
-                        <i class="fas fa-database me-1"></i>Public Data
-                    </span>
-                    <span class="badge bg-secondary">
-                        <i class="fas fa-sync-alt me-1"></i>Will be updated
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-        <!-- Footer Bottom -->
         <div class="footer-bottom">
             <div class="container">
                 <div class="footer-bottom-content">
                     <p class="footer-copyright">
-                        Made with <span class="heart"><i class="fas fa-heart"></i></span> by 
-                        <a href="https://waqar.tech" target="_blank" rel="noopener">Waqar Akhtar</a>
+                        Made with <span class="heart">❤️</span> by 
+                        <a href="#">USAR Students</a>
                     </p>
-                    <p class="footer-credits">
-                        Contact: <a href="https://github.com/Waqar080206/" target="_blank" rel="noopener">GitHub</a> & 
-                        <a href="https://www.waqar.tech" target="_blank" rel="noopener">Website</a>
-                    </p>
+                    <p class="footer-credits">© 2024 USAR Ranklist. All rights reserved.</p>
                 </div>
             </div>
         </div>
@@ -387,20 +732,337 @@
 
     <!-- Student Modal -->
     <div class="modal fade" id="studentModal" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title"><i class="fas fa-user me-2"></i>Student Details</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-user-graduate me-2"></i>Student Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body" id="studentDetails"></div>
+                <div class="modal-body" id="studentDetails">
+                    <!-- Student details loaded here -->
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/static/js/app.js"></script>
-    <script defer src="https://va.vercel-scripts.com/v1/script.js"></script>
+    
+    <!-- Inline JavaScript -->
+    <script>
+        // USAR Ranklist - Frontend Logic
+        let currentData = [];
 
+        // Load filters when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 USAR Ranklist loaded');
+            loadFilters();
+        });
+
+        // Get default filters (fallback)
+        function getDefaultFilters() {
+            return {
+                branches: [
+                    { code: "519", short: "AIDS", name: "Artificial Intelligence & Data Science" },
+                    { code: "516", short: "AIML", name: "Artificial Intelligence & Machine Learning" },
+                    { code: "520", short: "IIOT", name: "Industrial Internet of Things" },
+                    { code: "517", short: "AR", name: "Automation & Robotics" }
+                ],
+                semesters: ["01", "02", "03", "04", "05", "06", "07", "08"],
+                batches: ["2024", "2023", "2022", "2021"]
+            };
+        }
+
+        // Load filter options from API
+        async function loadFilters() {
+            console.log('📥 Loading filters...');
+            
+            try {
+                const response = await fetch('/api/filters');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('✅ Filters response:', data);
+                
+                populateFilters(data);
+                
+            } catch (error) {
+                console.error('❌ API Error:', error);
+                // Use hardcoded defaults
+                console.log('📌 Using default filters');
+                populateFilters(getDefaultFilters());
+            }
+        }
+
+        // Populate filter dropdowns
+        function populateFilters(data) {
+            // Populate Branch dropdown
+            const branchSelect = document.getElementById('branchSelect');
+            if (branchSelect) {
+                branchSelect.innerHTML = '<option value="">All Branches</option>';
+                
+                const branches = data.branches || getDefaultFilters().branches;
+                branches.forEach(branch => {
+                    const option = document.createElement('option');
+                    option.value = branch.short || branch.code;
+                    option.textContent = `${branch.short || branch.code} - ${branch.name}`;
+                    branchSelect.appendChild(option);
+                });
+                console.log(`✅ Branch options: ${branches.length}`);
+            }
+            
+            // Populate Semester dropdown
+            const semesterSelect = document.getElementById('semesterSelect');
+            if (semesterSelect) {
+                semesterSelect.innerHTML = '<option value="">All</option>';
+                
+                const semesters = data.semesters || getDefaultFilters().semesters;
+                semesters.forEach(sem => {
+                    const option = document.createElement('option');
+                    option.value = sem;
+                    option.textContent = `Sem ${parseInt(sem)}`;
+                    semesterSelect.appendChild(option);
+                });
+                console.log(`✅ Semester options: ${semesters.length}`);
+            }
+            
+            // Populate Batch dropdown
+            const batchSelect = document.getElementById('batchSelect');
+            if (batchSelect) {
+                batchSelect.innerHTML = '<option value="">All</option>';
+                
+                const batches = data.batches || getDefaultFilters().batches;
+                batches.forEach(batch => {
+                    const option = document.createElement('option');
+                    option.value = batch;
+                    option.textContent = batch;
+                    batchSelect.appendChild(option);
+                });
+                console.log(`✅ Batch options: ${batches.length}`);
+            }
+            
+            console.log('✅ All filters populated');
+        }
+
+        // Filter by branch (from footer links)
+        function filterBranch(branch) {
+            document.getElementById('branchSelect').value = branch;
+            loadRanklist();
+        }
+
+        // Load ranklist based on filters
+        async function loadRanklist() {
+            const branch = document.getElementById('branchSelect').value;
+            const semester = document.getElementById('semesterSelect').value;
+            const batch = document.getElementById('batchSelect').value;
+            const sortBy = document.getElementById('sortSelect').value;
+            const order = document.getElementById('orderSelect').value;
+            
+            let url = `/api/ranklist?sort_by=${sortBy}&order=${order}`;
+            if (branch) url += `&branch=${branch}`;
+            if (semester) url += `&semester=${semester}`;
+            if (batch) url += `&batch=${batch}`;
+            
+            console.log('📥 Fetching:', url);
+            
+            // Show loading
+            document.getElementById('ranklistBody').innerHTML = `
+                <tr>
+                    <td colspan="8" class="loading">
+                        <i class="fas fa-spinner fa-spin d-block"></i>
+                        <p>Loading ranklist...</p>
+                    </td>
+                </tr>
+            `;
+            
+            try {
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('✅ Ranklist:', data.total, 'students');
+                
+                currentData = data.ranklist || [];
+                displayRanklist(data);
+                displayStats(data);
+                
+            } catch (error) {
+                console.error('❌ Error:', error);
+                document.getElementById('ranklistBody').innerHTML = `
+                    <tr>
+                        <td colspan="8" class="empty-state">
+                            <i class="fas fa-exclamation-triangle d-block text-warning"></i>
+                            <h5>Failed to load ranklist</h5>
+                            <p>Please try again later</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Display ranklist in table
+        function displayRanklist(data) {
+            const tbody = document.getElementById('ranklistBody');
+            const ranklist = data.ranklist || [];
+            
+            if (ranklist.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="empty-state">
+                            <i class="fas fa-search d-block"></i>
+                            <h5>No students found</h5>
+                            <p>Try different filter options</p>
+                        </td>
+                    </tr>
+                `;
+                document.getElementById('statsRow').style.display = 'none';
+                return;
+            }
+            
+            tbody.innerHTML = ranklist.map(student => {
+                const rankBadge = student.rank === 1 ? '🥇' : 
+                                  student.rank === 2 ? '🥈' : 
+                                  student.rank === 3 ? '🥉' : student.rank;
+                const rankClass = student.rank <= 3 ? `rank-${student.rank}` : '';
+                
+                const sgpa = typeof student.sgpa === 'number' ? student.sgpa.toFixed(2) : student.sgpa;
+                const percentage = typeof student.percentage === 'number' ? student.percentage.toFixed(2) : student.percentage;
+                
+                return `
+                    <tr onclick="viewStudent('${student.roll_no}')">
+                        <td class="text-center">
+                            <span class="rank-badge ${rankClass}">${rankBadge}</span>
+                        </td>
+                        <td><strong>${student.roll_no}</strong></td>
+                        <td>${student.name}</td>
+                        <td><span class="badge bg-${getBranchColor(student.branch)}">${student.branch}</span></td>
+                        <td class="text-center">${student.semester}</td>
+                        <td class="text-center">${student.batch}</td>
+                        <td class="text-center"><span class="sgpa-badge">${sgpa}</span></td>
+                        <td class="text-center"><span class="percentage-badge">${percentage}%</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Display stats
+        function displayStats(data) {
+            const ranklist = data.ranklist || [];
+            
+            if (ranklist.length === 0) {
+                document.getElementById('statsRow').style.display = 'none';
+                return;
+            }
+            
+            const sgpas = ranklist.map(s => s.sgpa).filter(s => s > 0);
+            const percentages = ranklist.map(s => s.percentage).filter(p => p > 0);
+            
+            const avgSgpa = sgpas.length > 0 ? (sgpas.reduce((a, b) => a + b, 0) / sgpas.length).toFixed(2) : '0.00';
+            const avgPercentage = percentages.length > 0 ? (percentages.reduce((a, b) => a + b, 0) / percentages.length).toFixed(2) : '0.00';
+            
+            document.getElementById('statsRow').style.display = 'flex';
+            document.getElementById('totalStudents').textContent = ranklist.length;
+            document.getElementById('avgSgpa').textContent = avgSgpa;
+            document.getElementById('avgPercentage').textContent = avgPercentage + '%';
+            document.getElementById('topperName').textContent = ranklist[0] ? ranklist[0].name.split(' ')[0] : '-';
+        }
+
+        // View student details
+        async function viewStudent(rollNo) {
+            try {
+                const response = await fetch(`/api/student/${rollNo}`);
+                
+                if (!response.ok) {
+                    alert('Student not found');
+                    return;
+                }
+                
+                const student = await response.json();
+                
+                const sgpa = typeof student.sgpa === 'number' ? student.sgpa.toFixed(2) : student.sgpa;
+                const percentage = typeof student.percentage === 'number' ? student.percentage.toFixed(2) : student.percentage;
+                
+                document.getElementById('studentDetails').innerHTML = `
+                    <div class="text-center mb-3">
+                        <div class="stat-icon primary mx-auto mb-3">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <h4>${student.name}</h4>
+                        <p class="text-muted">${student.roll_no}</p>
+                    </div>
+                    <div class="row text-center mb-3">
+                        <div class="col-4">
+                            <div class="p-2 bg-light rounded">
+                                <h5 class="text-primary mb-0">${sgpa}</h5>
+                                <small>SGPA</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2 bg-light rounded">
+                                <h5 class="text-success mb-0">${percentage}%</h5>
+                                <small>Percentage</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2 bg-light rounded">
+                                <h5 class="text-info mb-0">${student.credits || 0}</h5>
+                                <small>Credits</small>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <p><strong>Branch:</strong> ${student.branch_name || student.branch}</p>
+                    <p><strong>Semester:</strong> ${student.semester}</p>
+                    <p><strong>Batch:</strong> ${student.batch}</p>
+                `;
+                
+                new bootstrap.Modal(document.getElementById('studentModal')).show();
+                
+            } catch (error) {
+                console.error('❌ Error:', error);
+                alert('Failed to load student details');
+            }
+        }
+
+        // Get branch color
+        function getBranchColor(branch) {
+            const colors = { 'AIDS': 'primary', 'AIML': 'danger', 'IIOT': 'info', 'AR': 'success' };
+            return colors[branch] || 'secondary';
+        }
+
+        // Export to CSV
+        function exportToCSV() {
+            if (!currentData || currentData.length === 0) {
+                alert('No data to export. Please load ranklist first.');
+                return;
+            }
+            
+            const headers = ['Rank', 'Roll No', 'Name', 'Branch', 'Semester', 'Batch', 'SGPA', 'Percentage'];
+            const rows = currentData.map(s => [
+                s.rank, s.roll_no, s.name, s.branch, s.semester, s.batch,
+                typeof s.sgpa === 'number' ? s.sgpa.toFixed(2) : s.sgpa,
+                typeof s.percentage === 'number' ? s.percentage.toFixed(2) : s.percentage
+            ]);
+            
+            let csv = headers.join(',') + '\n';
+            rows.forEach(row => {
+                csv += row.map(val => `"${val}"`).join(',') + '\n';
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'USAR_Ranklist.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+    </script>
 </body>
 </html>
