@@ -1,0 +1,1223 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Results Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --success-color: #4cc9f0;
+            --warning-color: #f72585;
+            --dark-color: #1a1a2e;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--primary-color) !important;
+        }
+        
+        .main-container {
+            padding: 2rem;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stats-card {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+        
+        .stats-card .stats-icon {
+            font-size: 3rem;
+            opacity: 0.3;
+            position: absolute;
+            right: 20px;
+            top: 20px;
+        }
+        
+        .stats-card h3 {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        .filter-section {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-primary {
+            background: var(--primary-color);
+            border: none;
+            border-radius: 10px;
+            padding: 10px 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background: var(--secondary-color);
+            transform: scale(1.05);
+        }
+        
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .badge-pass {
+            background: #10b981;
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+        
+        .badge-fail {
+            background: #ef4444;
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+        
+        .cgpa-badge {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 25px;
+            font-weight: 600;
+        }
+        
+        .semester-tabs .nav-link {
+            border: none;
+            color: #666;
+            font-weight: 600;
+            padding: 15px 25px;
+            border-radius: 10px;
+            margin: 0 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .semester-tabs .nav-link.active {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .semester-tabs .nav-link:hover:not(.active) {
+            background: #f0f0f0;
+        }
+        
+        .search-box {
+            position: relative;
+        }
+        
+        .search-box input {
+            padding-left: 45px;
+            border-radius: 25px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+        
+        .search-box input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+        
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+        
+        .student-card {
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .topper-card {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        }
+        
+        .topper-card .rank {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #d4380d;
+        }
+        
+        .chart-container {
+            height: 300px;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .modal-content {
+            border-radius: 20px;
+            border: none;
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 20px 20px 0 0;
+        }
+        
+        .result-grade {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+        }
+        
+        .grade-O { background: #10b981; }
+        .grade-A { background: #3b82f6; }
+        .grade-B { background: #8b5cf6; }
+        .grade-C { background: #f59e0b; }
+        .grade-D { background: #f97316; }
+        .grade-F { background: #ef4444; }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-graduation-cap me-2"></i>
+                Results Portal
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" onclick="showDashboard()">
+                            <i class="fas fa-home me-1"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showBranchView()">
+                            <i class="fas fa-building me-1"></i> Branch-wise
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showSemesterView()">
+                            <i class="fas fa-calendar me-1"></i> Semester-wise
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showToppers()">
+                            <i class="fas fa-trophy me-1"></i> Toppers
+                        </a>
+                    </li>
+                </ul>
+                <div class="search-box me-3">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="form-control" id="globalSearch" 
+                           placeholder="Search student..." onkeyup="searchStudents(this.value)">
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Dashboard Section -->
+        <div id="dashboardSection">
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card stats-card position-relative">
+                        <div class="card-body">
+                            <i class="fas fa-users stats-icon"></i>
+                            <h6 class="text-white-50">Total Students</h6>
+                            <h3 id="totalStudents">0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stats-card position-relative" style="background: linear-gradient(135deg, #10b981, #059669);">
+                        <div class="card-body">
+                            <i class="fas fa-check-circle stats-icon"></i>
+                            <h6 class="text-white-50">Pass Rate</h6>
+                            <h3 id="passRate">0%</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stats-card position-relative" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                        <div class="card-body">
+                            <i class="fas fa-chart-line stats-icon"></i>
+                            <h6 class="text-white-50">Avg CGPA</h6>
+                            <h3 id="avgCGPA">0.00</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stats-card position-relative" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                        <div class="card-body">
+                            <i class="fas fa-building stats-icon"></i>
+                            <h6 class="text-white-50">Branches</h6>
+                            <h3 id="totalBranches">8</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Branch Overview -->
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-bar me-2 text-primary"></i>
+                                Branch-wise Performance
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="branchChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-trophy me-2 text-warning"></i>
+                                Top Performers
+                            </h5>
+                        </div>
+                        <div class="card-body" id="topPerformersContainer">
+                            <!-- Top performers will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Branch View Section -->
+        <div id="branchSection" style="display: none;">
+            <div class="filter-section">
+                <div class="row align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Select Branch</label>
+                        <select class="form-select" id="branchSelect" onchange="loadBranchData()">
+                            <option value="">Choose Branch...</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Semester</label>
+                        <select class="form-select" id="semesterFilter" onchange="loadBranchData()">
+                            <option value="">All Semesters</option>
+                            <option value="1">Semester 1</option>
+                            <option value="2">Semester 2</option>
+                            <option value="3">Semester 3</option>
+                            <option value="4">Semester 4</option>
+                            <option value="5">Semester 5</option>
+                            <option value="6">Semester 6</option>
+                            <option value="7">Semester 7</option>
+                            <option value="8">Semester 8</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Batch Year</label>
+                        <select class="form-select" id="batchFilter" onchange="loadBranchData()">
+                            <option value="">All Batches</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Sort By</label>
+                        <select class="form-select" id="sortByFilter" onchange="loadBranchData()">
+                            <option value="roll_number">Roll Number</option>
+                            <option value="name">Name</option>
+                            <option value="cgpa">CGPA</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-primary w-100" onclick="exportToExcel()">
+                            <i class="fas fa-download me-2"></i>Export
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Branch Statistics -->
+            <div class="row mb-4" id="branchStatsRow">
+                <!-- Stats will be loaded here -->
+            </div>
+
+            <!-- Students Table -->
+            <div class="table-container">
+                <table class="table table-hover" id="studentsTable">
+                    <thead>
+                        <tr>
+                            <th>Roll Number</th>
+                            <th>Name</th>
+                            <th>Branch</th>
+                            <th>Semester</th>
+                            <th>CGPA</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentsTableBody">
+                        <!-- Data will be loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Semester View Section -->
+        <div id="semesterSection" style="display: none;">
+            <div class="filter-section">
+                <div class="row align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Select Branch</label>
+                        <select class="form-select" id="semBranchSelect" onchange="loadSemesterResults()">
+                            <option value="">Choose Branch...</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Batch Year</label>
+                        <select class="form-select" id="semBatchFilter" onchange="loadSemesterResults()">
+                            <option value="">All Batches</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-primary" onclick="exportSemesterResults()">
+                            <i class="fas fa-download me-2"></i>Export All
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Semester Tabs -->
+            <ul class="nav semester-tabs mb-4" id="semesterTabs">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#" data-semester="1" onclick="selectSemester(1)">Sem 1</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-semester="2" onclick="selectSemester(2)">Sem 2</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-semester="3" onclick="selectSemester(3)">Sem 3</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-semester="4" onclick="selectSemester(4)">Sem 4</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-semester="5" onclick="selectSemester(5)">Sem 5</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-semester="6" onclick="selectSemester(6)">Sem 6</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-semester="7" onclick="selectSemester(7)">Sem 7</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-semester="8" onclick="selectSemester(8)">Sem 8</a>
+                </li>
+            </ul>
+
+            <!-- Semester Results -->
+            <div class="table-container">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0" id="semesterTitle">Semester 1 Results</h5>
+                    <div>
+                        <span class="badge bg-success me-2" id="semPassCount">Pass: 0</span>
+                        <span class="badge bg-danger" id="semFailCount">Fail: 0</span>
+                    </div>
+                </div>
+                <table class="table table-hover" id="semesterResultsTable">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Roll Number</th>
+                            <th>Name</th>
+                            <th>SGPA</th>
+                            <th>Credits</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="semesterResultsBody">
+                        <!-- Data will be loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Toppers Section -->
+        <div id="toppersSection" style="display: none;">
+            <div class="filter-section">
+                <div class="row align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Select Branch</label>
+                        <select class="form-select" id="toppersBranchSelect" onchange="loadToppers()">
+                            <option value="">All Branches</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Semester</label>
+                        <select class="form-select" id="toppersSemesterSelect" onchange="loadToppers()">
+                            <option value="">All Semesters</option>
+                            <option value="1">Semester 1</option>
+                            <option value="2">Semester 2</option>
+                            <option value="3">Semester 3</option>
+                            <option value="4">Semester 4</option>
+                            <option value="5">Semester 5</option>
+                            <option value="6">Semester 6</option>
+                            <option value="7">Semester 7</option>
+                            <option value="8">Semester 8</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Top</label>
+                        <select class="form-select" id="topperCountSelect" onchange="loadToppers()">
+                            <option value="10">Top 10</option>
+                            <option value="20">Top 20</option>
+                            <option value="50">Top 50</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row" id="toppersContainer">
+                <!-- Toppers cards will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Detail Modal -->
+    <div class="modal fade" id="studentModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user-graduate me-2"></i>
+                        <span id="modalStudentName">Student Details</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="studentModalBody">
+                    <!-- Student details will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Results Modal -->
+    <div class="modal fade" id="searchModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Search Results</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="searchResultsBody">
+                    <!-- Search results will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    
+    <script>
+        // API Base URL
+        const API_BASE = 'http://localhost:8000/api';
+        
+        // Current state
+        let currentBranch = '';
+        let currentSemester = 1;
+        let studentsTable = null;
+        let branchChart = null;
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBranches();
+            loadDashboardData();
+            initializeBatchYears();
+        });
+        
+        // Load branches
+        async function loadBranches() {
+            try {
+                const response = await fetch(`${API_BASE}/branches`);
+                const branches = await response.json();
+                
+                const selects = ['branchSelect', 'semBranchSelect', 'toppersBranchSelect'];
+                selects.forEach(selectId => {
+                    const select = document.getElementById(selectId);
+                    branches.forEach(branch => {
+                        const option = document.createElement('option');
+                        option.value = branch.code;
+                        option.textContent = branch.name;
+                        select.appendChild(option);
+                    });
+                });
+            } catch (error) {
+                console.error('Error loading branches:', error);
+            }
+        }
+        
+        // Initialize batch years
+        function initializeBatchYears() {
+            const currentYear = new Date().getFullYear();
+            const batchSelects = ['batchFilter', 'semBatchFilter'];
+            
+            batchSelects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                for (let year = currentYear; year >= currentYear - 5; year--) {
+                    const option = document.createElement('option');
+                    option.value = year;
+                    option.textContent = `${year} Batch`;
+                    select.appendChild(option);
+                }
+            });
+        }
+        
+        // Load dashboard data
+        async function loadDashboardData() {
+            showLoading();
+            try {
+                // Load stats for each branch and aggregate
+                const branches = ['CSE', 'ECE', 'EEE', 'MECH', 'CIVIL', 'IT', 'AIDS', 'CSBS'];
+                let totalStudents = 0;
+                let totalPass = 0;
+                let totalCGPA = 0;
+                const branchStats = [];
+                
+                for (const branch of branches) {
+                    try {
+                        const response = await fetch(`${API_BASE}/branches/${branch}/statistics`);
+                        if (response.ok) {
+                            const stats = await response.json();
+                            branchStats.push(stats);
+                            totalStudents += stats.total_students;
+                            totalPass += stats.pass_count;
+                            totalCGPA += stats.average_sgpa * stats.total_students;
+                        }
+                    } catch (e) {
+                        // Branch may not have data
+                    }
+                }
+                
+                // Update stats cards
+                document.getElementById('totalStudents').textContent = totalStudents;
+                document.getElementById('passRate').textContent = 
+                    totalStudents > 0 ? `${(totalPass / totalStudents * 100).toFixed(1)}%` : '0%';
+                document.getElementById('avgCGPA').textContent = 
+                    totalStudents > 0 ? (totalCGPA / totalStudents).toFixed(2) : '0.00';
+                
+                // Create branch chart
+                createBranchChart(branchStats);
+                
+                // Load top performers
+                loadTopPerformers();
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+            hideLoading();
+        }
+        
+        // Create branch performance chart
+        function createBranchChart(branchStats) {
+            const ctx = document.getElementById('branchChart').getContext('2d');
+            
+            if (branchChart) {
+                branchChart.destroy();
+            }
+            
+            branchChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: branchStats.map(s => s.branch.split(' ')[0]),
+                    datasets: [
+                        {
+                            label: 'Average CGPA',
+                            data: branchStats.map(s => s.average_sgpa),
+                            backgroundColor: 'rgba(67, 97, 238, 0.8)',
+                            borderRadius: 10
+                        },
+                        {
+                            label: 'Pass %',
+                            data: branchStats.map(s => s.pass_percentage / 10),
+                            backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                            borderRadius: 10
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 10
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Load top performers
+        async function loadTopPerformers() {
+            try {
+                // Try to get toppers from a popular branch
+                const response = await fetch(`${API_BASE}/branches/CSE/toppers?limit=5`);
+                if (response.ok) {
+                    const toppers = await response.json();
+                    displayTopPerformers(toppers);
+                }
+            } catch (error) {
+                console.error('Error loading top performers:', error);
+            }
+        }
+        
+        // Display top performers
+        function displayTopPerformers(toppers) {
+            const container = document.getElementById('topPerformersContainer');
+            container.innerHTML = toppers.map((student, index) => `
+                <div class="d-flex align-items-center mb-3 p-2 ${index === 0 ? 'topper-card rounded' : ''}">
+                    <div class="rank me-3" style="color: ${index === 0 ? '#d4380d' : '#666'}; font-size: 1.5rem; font-weight: bold;">
+                        #${index + 1}
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-0">${student.name}</h6>
+                        <small class="text-muted">${student.roll_number}</small>
+                    </div>
+                    <div class="cgpa-badge">${student.cgpa.toFixed(2)}</div>
+                </div>
+            `).join('');
+        }
+        
+        // Navigation functions
+        function showDashboard() {
+            document.getElementById('dashboardSection').style.display = 'block';
+            document.getElementById('branchSection').style.display = 'none';
+            document.getElementById('semesterSection').style.display = 'none';
+            document.getElementById('toppersSection').style.display = 'none';
+            updateNavActive('Dashboard');
+        }
+        
+        function showBranchView() {
+            document.getElementById('dashboardSection').style.display = 'none';
+            document.getElementById('branchSection').style.display = 'block';
+            document.getElementById('semesterSection').style.display = 'none';
+            document.getElementById('toppersSection').style.display = 'none';
+            updateNavActive('Branch-wise');
+        }
+        
+        function showSemesterView() {
+            document.getElementById('dashboardSection').style.display = 'none';
+            document.getElementById('branchSection').style.display = 'none';
+            document.getElementById('semesterSection').style.display = 'block';
+            document.getElementById('toppersSection').style.display = 'none';
+            updateNavActive('Semester-wise');
+        }
+        
+        function showToppers() {
+            document.getElementById('dashboardSection').style.display = 'none';
+            document.getElementById('branchSection').style.display = 'none';
+            document.getElementById('semesterSection').style.display = 'none';
+            document.getElementById('toppersSection').style.display = 'block';
+            updateNavActive('Toppers');
+            loadToppers();
+        }
+        
+        function updateNavActive(section) {
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.textContent.includes(section)) {
+                    link.classList.add('active');
+                }
+            });
+        }
+        
+        // Load branch data
+        async function loadBranchData() {
+            const branch = document.getElementById('branchSelect').value;
+            if (!branch) return;
+            
+            const semester = document.getElementById('semesterFilter').value;
+            const batchYear = document.getElementById('batchFilter').value;
+            const sortBy = document.getElementById('sortByFilter').value;
+            
+            showLoading();
+            
+            try {
+                // Load statistics
+                let statsUrl = `${API_BASE}/branches/${branch}/statistics`;
+                if (semester) statsUrl += `?semester=${semester}`;
+                
+                const statsResponse = await fetch(statsUrl);
+                if (statsResponse.ok) {
+                    const stats = await statsResponse.json();
+                    displayBranchStats(stats);
+                }
+                
+                // Load students
+                let url = `${API_BASE}/branches/${branch}/students?sort_by=${sortBy}`;
+                if (semester) url += `&semester=${semester}`;
+                if (batchYear) url += `&batch_year=${batchYear}`;
+                
+                const response = await fetch(url);
+                if (response.ok) {
+                    const students = await response.json();
+                    displayStudents(students);
+                }
+            } catch (error) {
+                console.error('Error loading branch data:', error);
+            }
+            
+            hideLoading();
+        }
+        
+        // Display branch statistics
+        function displayBranchStats(stats) {
+            document.getElementById('branchStatsRow').innerHTML = `
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body text-center">
+                            <h4>${stats.total_students}</h4>
+                            <small>Total Students</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center">
+                            <h4>${stats.pass_count}</h4>
+                            <small>Passed</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body text-center">
+                            <h4>${stats.fail_count}</h4>
+                            <small>Failed</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body text-center">
+                            <h4>${stats.average_sgpa.toFixed(2)}</h4>
+                            <small>Average CGPA</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Display students in table
+        function displayStudents(students) {
+            const tbody = document.getElementById('studentsTableBody');
+            
+            tbody.innerHTML = students.map(student => `
+                <tr>
+                    <td><strong>${student.roll_number}</strong></td>
+                    <td>${student.name}</td>
+                    <td>${student.branch}</td>
+                    <td>Semester ${student.current_semester}</td>
+                    <td><span class="cgpa-badge">${student.cgpa.toFixed(2)}</span></td>
+                    <td>
+                        <span class="badge ${student.overall_status === 'ACTIVE' ? 'badge-pass' : 'badge-fail'}">
+                            ${student.overall_status}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewStudent('${student.roll_number}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            // Initialize or refresh DataTable
+            if (studentsTable) {
+                studentsTable.destroy();
+            }
+            studentsTable = $('#studentsTable').DataTable({
+                pageLength: 25,
+                order: [[0, 'asc']]
+            });
+        }
+        
+        // Select semester tab
+        function selectSemester(semester) {
+            currentSemester = semester;
+            
+            // Update tab active state
+            document.querySelectorAll('.semester-tabs .nav-link').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.dataset.semester == semester) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            document.getElementById('semesterTitle').textContent = `Semester ${semester} Results`;
+            loadSemesterResults();
+        }
+        
+        // Load semester results
+        async function loadSemesterResults() {
+            const branch = document.getElementById('semBranchSelect').value;
+            if (!branch) return;
+            
+            const batchYear = document.getElementById('semBatchFilter').value;
+            
+            showLoading();
+            
+            try {
+                let url = `${API_BASE}/semesters/${currentSemester}/results?branch=${branch}`;
+                if (batchYear) url += `&batch_year=${batchYear}`;
+                
+                const response = await fetch(url);
+                if (response.ok) {
+                    const results = await response.json();
+                    displaySemesterResults(results);
+                }
+            } catch (error) {
+                console.error('Error loading semester results:', error);
+            }
+            
+            hideLoading();
+        }
+        
+        // Display semester results
+        function displaySemesterResults(results) {
+            const tbody = document.getElementById('semesterResultsBody');
+            
+            let passCount = 0;
+            let failCount = 0;
+            
+            tbody.innerHTML = results.map((result, index) => {
+                const semResult = result.semester_result;
+                if (semResult.result_status === 'PASS') passCount++;
+                else failCount++;
+                
+                return `
+                    <tr>
+                        <td><strong>#${index + 1}</strong></td>
+                        <td><strong>${result.roll_number}</strong></td>
+                        <td>${result.name}</td>
+                        <td><span class="cgpa-badge">${semResult.sgpa.toFixed(2)}</span></td>
+                        <td>${semResult.credits_earned}/${semResult.total_credits}</td>
+                        <td>
+                            <span class="badge ${semResult.result_status === 'PASS' ? 'badge-pass' : 'badge-fail'}">
+                                ${semResult.result_status}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewStudent('${result.roll_number}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            
+            document.getElementById('semPassCount').textContent = `Pass: ${passCount}`;
+            document.getElementById('semFailCount').textContent = `Fail: ${failCount}`;
+        }
+        
+        // Load toppers
+        async function loadToppers() {
+            const branch = document.getElementById('toppersBranchSelect').value;
+            const semester = document.getElementById('toppersSemesterSelect').value;
+            const limit = document.getElementById('topperCountSelect').value;
+            
+            if (!branch) {
+                document.getElementById('toppersContainer').innerHTML = 
+                    '<div class="col-12 text-center text-white"><h5>Please select a branch</h5></div>';
+                return;
+            }
+            
+            showLoading();
+            
+            try {
+                let url = `${API_BASE}/branches/${branch}/toppers?limit=${limit}`;
+                if (semester) url += `&semester=${semester}`;
+                
+                const response = await fetch(url);
+                if (response.ok) {
+                    const toppers = await response.json();
+                    displayToppers(toppers);
+                }
+            } catch (error) {
+                console.error('Error loading toppers:', error);
+            }
+            
+            hideLoading();
+        }
+        
+        // Display toppers
+        function displayToppers(toppers) {
+            const container = document.getElementById('toppersContainer');
+            
+            container.innerHTML = toppers.map((student, index) => {
+                const medalClass = index === 0 ? 'bg-warning' : index === 1 ? 'bg-secondary' : index === 2 ? 'bg-danger' : 'bg-primary';
+                const medalIcon = index < 3 ? 'fas fa-medal' : 'fas fa-star';
+                
+                return `
+                    <div class="col-md-4 mb-4">
+                        <div class="card ${index === 0 ? 'topper-card' : ''} h-100">
+                            <div class="card-body text-center">
+                                <div class="mb-3">
+                                    <span class="badge ${medalClass} rounded-pill" style="font-size: 1.5rem; padding: 15px 20px;">
+                                        <i class="${medalIcon} me-2"></i>#${index + 1}
+                                    </span>
+                                </div>
+                                <h5 class="card-title">${student.name}</h5>
+                                <p class="text-muted mb-2">${student.roll_number}</p>
+                                <p class="mb-3">
+                                    <span class="badge bg-info">${student.branch}</span>
+                                    <span class="badge bg-secondary">Sem ${student.current_semester}</span>
+                                </p>
+                                <div class="cgpa-badge" style="font-size: 1.5rem; display: inline-block;">
+                                    CGPA: ${student.cgpa.toFixed(2)}
+                                </div>
+                                <div class="mt-3">
+                                    <button class="btn btn-sm btn-primary" onclick="viewStudent('${student.roll_number}')">
+                                        View Details
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // View student details
+        async function viewStudent(rollNumber) {
+            showLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE}/students/${rollNumber}`);
+                if (response.ok) {
+                    const student = await response.json();
+                    displayStudentModal(student);
+                }
+            } catch (error) {
+                console.error('Error loading student:', error);
+            }
+            
+            hideLoading();
+        }
+        
+        // Display student modal
+        function displayStudentModal(student) {
+            document.getElementById('modalStudentName').textContent = student.name;
+            
+            const semesterResultsHtml = student.semester_results.map(result => `
+                <div class="card mb-3 student-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">Semester ${result.semester}</h6>
+                        <span class="badge ${result.result_status === 'PASS' ? 'bg-success' : 'bg-danger'}">
+                            ${result.result_status}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-4 text-center">
+                                <h4 class="text-primary mb-0">${result.sgpa.toFixed(2)}</h4>
+                                <small class="text-muted">SGPA</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <h4 class="text-success mb-0">${result.credits_earned}</h4>
+                                <small class="text-muted">Credits Earned</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <h4 class="text-info mb-0">${result.total_credits}</h4>
+                                <small class="text-muted">Total Credits</small>
+                            </div>
+                        </div>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Internal</th>
+                                    <th>External</th>
+                                    <th>Total</th>
+                                    <th>Grade</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${result.subjects.map(sub => `
+                                    <tr>
+                                        <td>${sub.subject_name}</td>
+                                        <td>${sub.internal_marks}</td>
+                                        <td>${sub.external_marks}</td>
+                                        <td><strong>${sub.total_marks}</strong></td>
+                                        <td>
+                                            <span class="result-grade grade-${sub.grade}">${sub.grade}</span>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('studentModalBody').innerHTML = `
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p><strong>Roll Number:</strong> ${student.roll_number}</p>
+                        <p><strong>Registration:</strong> ${student.registration_number}</p>
+                        <p><strong>Father's Name:</strong> ${student.father_name}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Branch:</strong> ${student.branch}</p>
+                        <p><strong>Batch:</strong> ${student.batch_year}</p>
+                        <p><strong>Current Semester:</strong> ${student.current_semester}</p>
+                    </div>
+                </div>
+                <div class="text-center mb-4">
+                    <div class="cgpa-badge" style="font-size: 1.5rem; display: inline-block; padding: 15px 30px;">
+                        Overall CGPA: ${student.cgpa.toFixed(2)}
+                    </div>
+                </div>
+                <h5 class="mb-3">Semester Results</h5>
+                ${semesterResultsHtml}
+            `;
+            
+            new bootstrap.Modal(document.getElementById('studentModal')).show();
+        }
+        
+        // Search students
+        let searchTimeout;
+        async function searchStudents(query) {
+            clearTimeout(searchTimeout);
+            
+            if (query.length < 2) return;
+            
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const response = await fetch(`${API_BASE}/search?q=${encodeURIComponent(query)}`);
+                    if (response.ok) {
+                        const results = await response.json();
+                        displaySearchResults(results);
+                    }
+                } catch (error) {
+                    console.error('Error searching:', error);
+                }
+            }, 300);
+        }
+        
+        // Display search results
+        function displaySearchResults(results) {
+            if (results.length === 0) return;
+            
+            document.getElementById('searchResultsBody').innerHTML = results.map(student => `
+                <div class="d-flex align-items-center mb-2 p-2 border-bottom" 
+                     style="cursor: pointer;" onclick="viewStudent('${student.roll_number}')">
+                    <div class="flex-grow-1">
+                        <h6 class="mb-0">${student.name}</h6>
+                        <small class="text-muted">${student.roll_number} | ${student.branch}</small>
+                    </div>
+                    <span class="cgpa-badge">${student.cgpa.toFixed(2)}</span>
+                </div>
+            `).join('');
+            
+            new bootstrap.Modal(document.getElementById('searchModal')).show();
+        }
+        
+        // Export to Excel
+        function exportToExcel() {
+            const table = document.getElementById('studentsTable');
+            const wb = XLSX.utils.table_to_book(table, {sheet: "Students"});
+            XLSX.writeFile(wb, 'students_results.xlsx');
+        }
+        
+        function exportSemesterResults() {
+            const table = document.getElementById('semesterResultsTable');
+            const wb = XLSX.utils.table_to_book(table, {sheet: `Semester ${currentSemester}`});
+            XLSX.writeFile(wb, `semester_${currentSemester}_results.xlsx');
+        }
+        
+        // Loading helpers
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+        
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

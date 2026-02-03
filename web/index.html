@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>USAR Ranklist</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 USAR Ranklist</h1>
+            <p>Student Result Ranking System</p>
+        </header>
+
+        <main>
+            <!-- Search Box -->
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search by name or enrollment number...">
+                <select id="sort-select">
+                    <option value="rank">Sort by Rank</option>
+                    <option value="name">Sort by Name</option>
+                    <option value="percentage">Sort by %</option>
+                </select>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="stats-row">
+                <div class="stat">
+                    <span class="stat-number" id="total-students">0</span>
+                    <span class="stat-label">Students</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number" id="top-percentage">0%</span>
+                    <span class="stat-label">Highest</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number" id="avg-percentage">0%</span>
+                    <span class="stat-label">Average</span>
+                </div>
+            </div>
+
+            <!-- Results Table -->
+            <div class="results-card">
+                <table id="results-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Name</th>
+                            <th>Enrollment</th>
+                            <th>Marks</th>
+                            <th>%</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-tbody">
+                        <tr class="empty-row">
+                            <td colspan="5">No results found</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+
+        <footer>
+            <p>USAR Ranklist v1.0</p>
+        </footer>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-box">
+            <button class="close-btn" id="close-modal">&times;</button>
+            <div class="modal-header">
+                <div class="avatar" id="modal-avatar">AB</div>
+                <div>
+                    <h2 id="modal-name">Student Name</h2>
+                    <p id="modal-enrollment">Enrollment</p>
+                </div>
+            </div>
+            <div class="modal-stats">
+                <div><strong>Rank:</strong> <span id="modal-rank">1</span></div>
+                <div><strong>Total:</strong> <span id="modal-total">0/0</span></div>
+                <div><strong>Percentage:</strong> <span id="modal-percentage">0%</span></div>
+            </div>
+            <div class="subjects" id="modal-subjects"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

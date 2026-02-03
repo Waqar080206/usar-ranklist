@@ -1,0 +1,16 @@
+{
+  "name": "usar-ranklist",
+  "version": "1.0.0",
+  "description": "Automated Result Parsing and Ranking System for IPU results.",
+  "main": "web/app.js",
+  "scripts": {
+    "start": "node web/app.js",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "body-parser": "^1.19.0"
+  },
+  "author": "Your Name",
+  "license": "MIT"
+}
