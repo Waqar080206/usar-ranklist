@@ -4,6 +4,7 @@ Handles data loading and ranking logic
 """
 
 import json
+import os
 from pathlib import Path
 from typing import List, Dict, Optional
 
@@ -25,26 +26,56 @@ class DataService:
         self.students: List[Dict] = []
         self._loaded = False
     
-    def load_data(self) -> bool:
-        """Load data from JSON file"""
-        if self._loaded:
-            return True
+    def _find_data_file(self) -> Optional[Path]:
+        """Find the data file in various possible locations"""
+        # Get the directory where this script is located
+        current_dir = Path(__file__).resolve().parent
         
-        # Find data file
+        # List of possible paths to check
         possible_paths = [
-            Path(__file__).parent.parent / "data" / "output" / "parsed_results.json",
+            # Relative to result-management folder
+            current_dir.parent / "data" / "output" / "parsed_results.json",
+            current_dir / "data" / "parsed_results.json",
+            current_dir / "parsed_results.json",
+            
+            # Absolute paths for local development
             Path("w:/usar-ranklist/data/output/parsed_results.json"),
-            Path("../data/output/parsed_results.json"),
+            
+            # For Vercel - check environment variable or common locations
+            Path(os.environ.get("DATA_PATH", "")) / "parsed_results.json" if os.environ.get("DATA_PATH") else None,
+            
+            # Vercel serverless function paths
+            Path("/var/task/data/output/parsed_results.json"),
+            Path("/var/task/result-management/data/parsed_results.json"),
+            Path("/var/task/parsed_results.json"),
         ]
         
-        file_path = None
+        # Filter out None values and check each path
         for path in possible_paths:
-            if path.exists():
-                file_path = path
-                break
+            if path and path.exists():
+                print(f"✅ Found data file at: {path}")
+                return path
+        
+        # List all files in current directory for debugging
+        print(f"📁 Current directory: {current_dir}")
+        print(f"📁 Files in current dir: {list(current_dir.iterdir()) if current_dir.exists() else 'N/A'}")
+        
+        parent = current_dir.parent
+        print(f"📁 Parent directory: {parent}")
+        print(f"📁 Files in parent: {list(parent.iterdir()) if parent.exists() else 'N/A'}")
+        
+        return None
+    
+    def load_data(self) -> bool:
+        """Load data from JSON file"""
+        if self._loaded and len(self.students) > 0:
+            return True
+        
+        file_path = self._find_data_file()
         
         if not file_path:
-            print("❌ Data file not found!")
+            print("❌ Data file not found! Using empty dataset.")
+            self._loaded = True  # Mark as loaded to prevent repeated attempts
             return False
         
         try:
@@ -62,7 +93,8 @@ class DataService:
             return True
             
         except Exception as e:
-            print(f"❌ Error: {e}")
+            print(f"❌ Error loading data: {e}")
+            self._loaded = True
             return False
     
     def _process_student(self, record: Dict) -> Optional[Dict]:
@@ -94,7 +126,7 @@ class DataService:
                 "subjects": subjects
             }
         except Exception as e:
-            print(f"⚠️ Error processing: {e}")
+            print(f"⚠️ Error processing record: {e}")
             return None
     
     def _calculate_sgpa(self, subjects: List, percentage: float) -> float:
@@ -184,18 +216,27 @@ class DataService:
         if not self._loaded:
             self.load_data()
         
+        # Always return branches even if no data loaded
         branches = [
             {"code": code, "short": info["code"], "name": info["name"]}
             for code, info in BRANCHES.items()
         ]
         
-        semesters = sorted(set(s["semester"] for s in self.students if s["semester"]))
-        batches = sorted(set(s["batch"] for s in self.students if s["batch"]), reverse=True)
+        # Get unique semesters and batches from data
+        semesters = sorted(set(s["semester"] for s in self.students if s.get("semester")))
+        batches = sorted(set(s["batch"] for s in self.students if s.get("batch")), reverse=True)
+        
+        # If no data, provide default options
+        if not semesters:
+            semesters = ["01", "02", "03", "04", "05", "06", "07", "08"]
+        if not batches:
+            batches = ["2024", "2023", "2022", "2021"]
         
         return {
             "branches": branches,
             "semesters": semesters,
-            "batches": batches
+            "batches": batches,
+            "total_students": len(self.students)
         }
     
     def get_student_by_roll(self, roll_no: str) -> Optional[Dict]:

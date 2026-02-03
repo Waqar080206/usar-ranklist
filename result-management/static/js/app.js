@@ -4,61 +4,118 @@ let currentData = [];
 
 // Load filters when page loads
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Loading filters...');
+    console.log('🚀 USAR Ranklist loaded');
     loadFilters();
 });
 
 // Load filter options from API
 async function loadFilters() {
     try {
+        console.log('📥 Loading filters...');
         const response = await fetch('/api/filters');
-        const data = await response.json();
         
-        console.log('Filters loaded:', data);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ Filters loaded:', data);
         
         // Populate Branch dropdown
         const branchSelect = document.getElementById('branchSelect');
-        branchSelect.innerHTML = '<option value="">All Branches</option>';
-        
-        if (data.branches && data.branches.length > 0) {
-            data.branches.forEach(branch => {
-                const option = document.createElement('option');
-                option.value = branch.short;
-                option.textContent = `${branch.short} - ${branch.name}`;
-                branchSelect.appendChild(option);
-            });
+        if (branchSelect) {
+            branchSelect.innerHTML = '<option value="">All Branches</option>';
+            
+            if (data.branches && data.branches.length > 0) {
+                data.branches.forEach(branch => {
+                    const option = document.createElement('option');
+                    option.value = branch.short;
+                    option.textContent = `${branch.short} - ${branch.name}`;
+                    branchSelect.appendChild(option);
+                });
+            }
         }
         
         // Populate Semester dropdown
         const semesterSelect = document.getElementById('semesterSelect');
-        semesterSelect.innerHTML = '<option value="">All</option>';
-        
-        if (data.semesters && data.semesters.length > 0) {
-            data.semesters.forEach(sem => {
-                const option = document.createElement('option');
-                option.value = sem;
-                option.textContent = `Sem ${sem}`;
-                semesterSelect.appendChild(option);
-            });
+        if (semesterSelect) {
+            semesterSelect.innerHTML = '<option value="">All</option>';
+            
+            if (data.semesters && data.semesters.length > 0) {
+                data.semesters.forEach(sem => {
+                    const option = document.createElement('option');
+                    option.value = sem;
+                    option.textContent = `Sem ${sem}`;
+                    semesterSelect.appendChild(option);
+                });
+            }
         }
         
         // Populate Batch dropdown
         const batchSelect = document.getElementById('batchSelect');
-        batchSelect.innerHTML = '<option value="">All</option>';
-        
-        if (data.batches && data.batches.length > 0) {
-            data.batches.forEach(batch => {
-                const option = document.createElement('option');
-                option.value = batch;
-                option.textContent = batch;
-                batchSelect.appendChild(option);
-            });
+        if (batchSelect) {
+            batchSelect.innerHTML = '<option value="">All</option>';
+            
+            if (data.batches && data.batches.length > 0) {
+                data.batches.forEach(batch => {
+                    const option = document.createElement('option');
+                    option.value = batch;
+                    option.textContent = batch;
+                    batchSelect.appendChild(option);
+                });
+            }
         }
         
-        console.log('Filters populated successfully');
+        // Show total students count if available
+        if (data.total_students !== undefined) {
+            console.log(`📊 Total students in database: ${data.total_students}`);
+        }
+        
+        console.log('✅ Filters populated successfully');
         
     } catch (error) {
-        console.error('Error loading filters:', error);
+        console.error('❌ Error loading filters:', error);
+        
+        // Fallback: populate with default values
+        populateDefaultFilters();
+    }
+}
+
+// Fallback function if API fails
+function populateDefaultFilters() {
+    console.log('⚠️ Using default filter values');
+    
+    const branchSelect = document.getElementById('branchSelect');
+    if (branchSelect) {
+        branchSelect.innerHTML = `
+            <option value="">All Branches</option>
+            <option value="AIDS">AIDS - Artificial Intelligence & Data Science</option>
+            <option value="AIML">AIML - Artificial Intelligence & Machine Learning</option>
+            <option value="IIOT">IIOT - Industrial Internet of Things</option>
+            <option value="AR">AR - Automation & Robotics</option>
+        `;
+    }
+    
+    const semesterSelect = document.getElementById('semesterSelect');
+    if (semesterSelect) {
+        semesterSelect.innerHTML = '<option value="">All</option>';
+        for (let i = 1; i <= 8; i++) {
+            const option = document.createElement('option');
+            option.value = i.toString().padStart(2, '0');
+            option.textContent = `Sem ${i}`;
+            semesterSelect.appendChild(option);
+        }
+    }
+    
+    const batchSelect = document.getElementById('batchSelect');
+    if (batchSelect) {
+        batchSelect.innerHTML = `
+            <option value="">All</option>
+            <option value="2024">2024</option>
+            <option value="2023">2023</option>
+            <option value="2022">2022</option>
+            <option value="2021">2021</option>
+        `;
     }
 }
 
@@ -76,21 +133,26 @@ async function loadRanklist() {
     if (semester) url += `&semester=${semester}`;
     if (batch) url += `&batch=${batch}`;
     
-    console.log('Fetching ranklist:', url);
+    console.log('📥 Fetching ranklist:', url);
     
     try {
         const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         
-        console.log('Ranklist loaded:', data.total, 'students');
+        console.log('✅ Ranklist loaded:', data.total, 'students');
         
         currentData = data.ranklist || [];
         displayRanklist(data);
         displayStats(data);
         
     } catch (error) {
-        console.error('Error loading ranklist:', error);
-        alert('Failed to load ranklist');
+        console.error('❌ Error loading ranklist:', error);
+        alert('Failed to load ranklist. Please try again.');
     }
 }
 
@@ -212,7 +274,7 @@ async function viewStudent(rollNo) {
         new bootstrap.Modal(document.getElementById('studentModal')).show();
         
     } catch (error) {
-        console.error('Error:', error);
+        console.error('❌ Error:', error);
         alert('Failed to load student details');
     }
 }
