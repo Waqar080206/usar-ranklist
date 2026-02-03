@@ -1,125 +1,219 @@
 """
-USAR Ranklist - Main Server
+USAR Ranklist - FastAPI Backend
 """
 
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, FileResponse
-from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
-from typing import Optional
-import os
+import json
 
-from database_service import data_service
+app = FastAPI(title="USAR Ranklist", version="1.0.0")
 
-# Get directory
+# Get the directory where this file is located
 BASE_DIR = Path(__file__).resolve().parent
 
-# Initialize FastAPI
-app = FastAPI(title="USAR Ranklist")
+# Load student data
+def load_data():
+    """Load student data from embedded_data.py or JSON file"""
+    try:
+        from embedded_data import STUDENT_DATA
+        print(f"✅ Loaded {len(STUDENT_DATA)} students from embedded_data.py")
+        return STUDENT_DATA
+    except Exception as e:
+        print(f"⚠️ embedded_data.py failed: {e}")
+        
+    # Fallback to JSON
+    json_paths = [
+        BASE_DIR / "data" / "parsed_results.json",
+        Path("/var/task/result-management/data/parsed_results.json"),
+    ]
+    
+    for json_path in json_paths:
+        if json_path.exists():
+            with open(json_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                print(f"✅ Loaded {len(data)} students from {json_path}")
+                return data
+    
+    print("❌ No data source found")
+    return []
 
-# CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Load data at startup
+STUDENTS = load_data()
 
-# Static files - mount with absolute path
-static_path = BASE_DIR / "static"
-if static_path.exists():
-    app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
+# Branch mapping
+BRANCH_MAP = {
+    "519": {"short": "AIDS", "name": "Artificial Intelligence & Data Science"},
+    "516": {"short": "AIML", "name": "Artificial Intelligence & Machine Learning"},
+    "520": {"short": "IIOT", "name": "Industrial Internet of Things"},
+    "517": {"short": "AR", "name": "Automation & Robotics"},
+}
 
-# Templates
-templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+def get_branch_from_roll(roll_no: str) -> dict:
+    """Extract branch info from roll number"""
+    if len(roll_no) >= 5:
+        code = roll_no[2:5]
+        return BRANCH_MAP.get(code, {"short": "UNK", "name": "Unknown"})
+    return {"short": "UNK", "name": "Unknown"}
 
+def calculate_sgpa(student: dict) -> float:
+    """Calculate SGPA from subjects"""
+    subjects = student.get("subjects", [])
+    if not subjects:
+        return 0.0
+    
+    total_credits = 0
+    total_points = 0
+    
+    grade_points = {
+        "O": 10, "A+": 9, "A": 8, "B+": 7, "B": 6,
+        "C+": 5, "C": 4, "D": 3, "F": 0, "AB": 0
+    }
+    
+    for subj in subjects:
+        credits = subj.get("credits", 0) or 0
+        grade = subj.get("grade", "F")
+        points = grade_points.get(grade, 0)
+        
+        total_credits += credits
+        total_points += credits * points
+    
+    if total_credits == 0:
+        return 0.0
+    
+    return round(total_points / total_credits, 2)
 
-# Explicit static file routes for Vercel
-@app.get("/static/css/style.css")
-async def get_css():
-    css_path = BASE_DIR / "static" / "css" / "style.css"
-    if css_path.exists():
-        return FileResponse(css_path, media_type="text/css")
-    raise HTTPException(status_code=404, detail="CSS not found")
-
-
-@app.get("/static/js/app.js")
-async def get_js():
-    js_path = BASE_DIR / "static" / "js" / "app.js"
-    if js_path.exists():
-        return FileResponse(js_path, media_type="application/javascript")
-    raise HTTPException(status_code=404, detail="JS not found")
-
-
-# Load data on startup
-@app.on_event("startup")
-async def startup():
-    data_service.load_data()
-
-
-@app.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    """Main page"""
-    return templates.TemplateResponse("index.html", {"request": request})
-
-
+# API Routes
 @app.get("/api/filters")
 async def get_filters():
-    """Get filter options"""
-    return data_service.get_filter_options()
-
+    """Get available filter options"""
+    semesters = sorted(set(s.get("semester", "") for s in STUDENTS if s.get("semester")))
+    batches = sorted(set(s.get("batch", "") for s in STUDENTS if s.get("batch")), reverse=True)
+    
+    branches = [
+        {"code": "519", "short": "AIDS", "name": "Artificial Intelligence & Data Science"},
+        {"code": "516", "short": "AIML", "name": "Artificial Intelligence & Machine Learning"},
+        {"code": "520", "short": "IIOT", "name": "Industrial Internet of Things"},
+        {"code": "517", "short": "AR", "name": "Automation & Robotics"},
+    ]
+    
+    return {
+        "branches": branches,
+        "semesters": semesters,
+        "batches": batches,
+        "total_students": len(STUDENTS)
+    }
 
 @app.get("/api/ranklist")
 async def get_ranklist(
-    branch: Optional[str] = None,
-    semester: Optional[str] = None,
-    batch: Optional[str] = None,
+    branch: str = None,
+    semester: str = None,
+    batch: str = None,
     sort_by: str = "sgpa",
     order: str = "desc"
 ):
-    """Get ranklist"""
-    ascending = order.lower() == "asc"
-    return data_service.get_ranklist(branch, semester, batch, sort_by, ascending)
-
+    """Get filtered and sorted ranklist"""
+    filtered = STUDENTS.copy()
+    
+    # Filter by branch
+    if branch:
+        branch_codes = {v["short"]: k for k, v in BRANCH_MAP.items()}
+        code = branch_codes.get(branch.upper())
+        if code:
+            filtered = [s for s in filtered if len(s.get("roll_no", "")) >= 5 and s["roll_no"][2:5] == code]
+    
+    # Filter by semester
+    if semester:
+        filtered = [s for s in filtered if s.get("semester") == semester]
+    
+    # Filter by batch
+    if batch:
+        filtered = [s for s in filtered if s.get("batch") == batch]
+    
+    # Calculate SGPA for each student
+    results = []
+    for student in filtered:
+        sgpa = calculate_sgpa(student)
+        branch_info = get_branch_from_roll(student.get("roll_no", ""))
+        
+        # Calculate percentage from marks
+        total = student.get("total_marks", 0) or 0
+        max_marks = student.get("max_marks", 0) or 0
+        percentage = round((total / max_marks * 100), 2) if max_marks > 0 else 0.0
+        
+        results.append({
+            "roll_no": student.get("roll_no", ""),
+            "name": student.get("name", ""),
+            "branch": branch_info["short"],
+            "branch_name": branch_info["name"],
+            "semester": student.get("semester", ""),
+            "batch": student.get("batch", ""),
+            "sgpa": sgpa,
+            "percentage": percentage,
+            "credits": student.get("credits_secured", 0)
+        })
+    
+    # Sort
+    reverse = order.lower() == "desc"
+    if sort_by == "percentage":
+        results.sort(key=lambda x: x["percentage"], reverse=reverse)
+    else:
+        results.sort(key=lambda x: x["sgpa"], reverse=reverse)
+    
+    # Add ranks
+    for i, student in enumerate(results, 1):
+        student["rank"] = i
+    
+    return {
+        "total": len(results),
+        "ranklist": results
+    }
 
 @app.get("/api/student/{roll_no}")
 async def get_student(roll_no: str):
-    """Get student details"""
-    student = data_service.get_student_by_roll(roll_no)
-    if not student:
-        raise HTTPException(status_code=404, detail="Student not found")
-    return student
+    """Get student details by roll number"""
+    for student in STUDENTS:
+        if student.get("roll_no") == roll_no:
+            sgpa = calculate_sgpa(student)
+            branch_info = get_branch_from_roll(roll_no)
+            
+            total = student.get("total_marks", 0) or 0
+            max_marks = student.get("max_marks", 0) or 0
+            percentage = round((total / max_marks * 100), 2) if max_marks > 0 else 0.0
+            
+            return {
+                "roll_no": roll_no,
+                "name": student.get("name", ""),
+                "sid": student.get("sid", ""),
+                "branch": branch_info["short"],
+                "branch_name": branch_info["name"],
+                "semester": student.get("semester", ""),
+                "batch": student.get("batch", ""),
+                "sgpa": sgpa,
+                "percentage": percentage,
+                "credits": student.get("credits_secured", 0),
+                "subjects": student.get("subjects", [])
+            }
+    
+    raise HTTPException(status_code=404, detail="Student not found")
 
+# Serve HTML page
+@app.get("/", response_class=HTMLResponse)
+async def home():
+    """Serve the main HTML page"""
+    template_path = BASE_DIR / "templates" / "index.html"
+    
+    if template_path.exists():
+        with open(template_path, 'r', encoding='utf-8') as f:
+            return HTMLResponse(content=f.read())
+    
+    return HTMLResponse(content="<h1>USAR Ranklist</h1><p>Template not found</p>")
 
-@app.get("/api/stats")
-async def get_stats(
-    branch: Optional[str] = None,
-    semester: Optional[str] = None,
-    batch: Optional[str] = None
-):
-    """Get statistics"""
-    return data_service.get_stats(branch, semester, batch)
-
-
+# Health check
 @app.get("/api/health")
 async def health():
-    """Health check"""
-    return {
-        "status": "ok",
-        "students": len(data_service.students),
-        "data_loaded": data_service._loaded,
-        "static_path": str(static_path),
-        "static_exists": static_path.exists()
-    }
-
+    return {"status": "ok", "students": len(STUDENTS)}
 
 # For Vercel
 handler = app
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
