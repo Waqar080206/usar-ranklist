@@ -7,6 +7,174 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <link href="/static/css/style.css" rel="stylesheet">
+    
+    <!-- Inline Backup CSS (in case external CSS fails) -->
+    <style>
+        /* Footer Backup Styles */
+        .footer {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            padding: 0;
+            margin-top: auto;
+        }
+        
+        .footer-main {
+            padding: 40px 0 30px;
+        }
+        
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .footer-brand-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #4361ee, #7c3aed);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .footer-brand h4 {
+            margin: 0;
+            font-weight: 700;
+        }
+        
+        .footer-brand p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+        
+        .footer-text {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+        
+        .footer-heading {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .footer-links-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .footer-links-list li {
+            margin-bottom: 12px;
+        }
+        
+        .footer-links-list a {
+            color: #94a3b8;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .footer-links-list a:hover {
+            color: #4361ee;
+        }
+        
+        .footer-social {
+            display: flex;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        
+        .social-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #fff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .social-icon.github {
+            background: #333;
+        }
+        
+        .social-icon.github:hover {
+            background: #6e5494;
+            transform: translateY(-3px);
+        }
+        
+        .social-icon.website {
+            background: linear-gradient(135deg, #4361ee, #7c3aed);
+        }
+        
+        .social-icon.website:hover {
+            transform: translateY(-3px);
+        }
+        
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px 0;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .footer-bottom-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .footer-copyright {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+        
+        .footer-copyright a {
+            color: #4361ee;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .footer-credits {
+            color: #64748b;
+            font-size: 0.8rem;
+            margin: 0;
+        }
+        
+        .footer-credits a {
+            color: #64748b;
+            text-decoration: none;
+        }
+        
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        .footer-copyright .heart {
+            color: #ef4444;
+            animation: heartbeat 1.5s infinite;
+        }
+        
+        @media (max-width: 768px) {
+            .footer-main { text-align: center; }
+            .footer-brand { justify-content: center; }
+            .footer-social { justify-content: center; }
+            .footer-bottom-content { justify-content: center; text-align: center; }
+        }
+    </style>
 </head>
 <body>
     <!-- Header -->

@@ -7,9 +7,21 @@
             "config": {
                 "maxLambdaSize": "50mb"
             }
+        },
+        {
+            "src": "result-management/static/**",
+            "use": "@vercel/static"
         }
     ],
     "routes": [
+        {
+            "src": "/static/css/(.*)",
+            "dest": "result-management/static/css/$1"
+        },
+        {
+            "src": "/static/js/(.*)",
+            "dest": "result-management/static/js/$1"
+        },
         {
             "src": "/static/(.*)",
             "dest": "result-management/static/$1"

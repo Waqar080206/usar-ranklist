@@ -1,47 +1,61 @@
 """
-USAR Ranklist - Simplified Branch-wise Ranking System
+USAR Ranklist - Main Server
+FastAPI application for student ranklist
 """
 
-from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request, Query
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
-from typing import Optional
+from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
+from typing import Optional
 
 from database_service import data_service
 
+# Get the directory where main.py is located
+BASE_DIR = Path(__file__).resolve().parent
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    print("🚀 Loading student data...")
-    data_service.load_data()
-    print(f"✅ Loaded {len(data_service.students)} students")
-    yield
-    print("👋 Server stopped")
+# Initialize FastAPI
+app = FastAPI(
+    title="USAR Ranklist",
+    description="Student Ranklist for USAR, GGSIPU",
+    version="1.0.0"
+)
 
-
-app = FastAPI(title="USAR Ranklist", lifespan=lifespan)
-
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-BASE_DIR = Path(__file__).resolve().parent
-app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
-templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+# Mount static files
+static_path = BASE_DIR / "static"
+if static_path.exists():
+    app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
+    print(f"✅ Static files mounted from: {static_path}")
+else:
+    print(f"⚠️ Static folder not found at: {static_path}")
+
+# Templates
+templates_path = BASE_DIR / "templates"
+templates = Jinja2Templates(directory=str(templates_path))
+print(f"✅ Templates loaded from: {templates_path}")
 
 
-# ============ Main Page ============
+@app.on_event("startup")
+async def startup_event():
+    """Load data on startup"""
+    print("🚀 Loading student data...")
+    data_service.load_data()
+
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
-    """Main ranklist page"""
+    """Render main page"""
     filters = data_service.get_filter_options()
     return templates.TemplateResponse("index.html", {
         "request": request,
@@ -51,40 +65,38 @@ async def home(request: Request):
     })
 
 
-# ============ API ============
-
-@app.get("/api/ranklist")
-async def get_ranklist(
-    branch: Optional[str] = Query(None, description="Branch: AIDS, AIML, IIOT, AR"),
-    semester: Optional[str] = Query(None, description="Semester: 01, 02, 03..."),
-    batch: Optional[str] = Query(None, description="Batch: 2024, 2023..."),
-    sort_by: str = Query("sgpa", description="Sort by: sgpa, percentage"),
-    order: str = Query("desc", description="Order: asc, desc")
-):
-    """
-    Get branch-wise ranklist
-    - Sorted by SGPA or Percentage
-    - Ascending or Descending order
-    """
-    return data_service.get_ranklist(
-        branch=branch,
-        semester=semester,
-        batch=batch,
-        sort_by=sort_by,
-        ascending=(order == "asc")
-    )
-
-
 @app.get("/api/filters")
 async def get_filters():
     """Get available filter options"""
     return data_service.get_filter_options()
 
 
+@app.get("/api/ranklist")
+async def get_ranklist(
+    branch: Optional[str] = None,
+    semester: Optional[str] = None,
+    batch: Optional[str] = None,
+    sort_by: str = "sgpa",
+    order: str = "desc"
+):
+    """Get ranklist with filters"""
+    ascending = order.lower() == "asc"
+    return data_service.get_ranklist(
+        branch=branch,
+        semester=semester,
+        batch=batch,
+        sort_by=sort_by,
+        ascending=ascending
+    )
+
+
 @app.get("/api/student/{roll_no}")
 async def get_student(roll_no: str):
-    """Get student details"""
-    return data_service.get_student_by_roll(roll_no)
+    """Get student details by roll number"""
+    student = data_service.get_student_by_roll(roll_no)
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    return student
 
 
 @app.get("/api/stats")
@@ -93,8 +105,22 @@ async def get_stats(
     semester: Optional[str] = None,
     batch: Optional[str] = None
 ):
-    """Get statistics for selected filters"""
+    """Get statistics"""
     return data_service.get_stats(branch, semester, batch)
+
+
+# Health check
+@app.get("/api/health")
+async def health_check():
+    """Health check endpoint"""
+    return {
+        "status": "ok",
+        "base_dir": str(BASE_DIR),
+        "static_exists": (BASE_DIR / "static").exists(),
+        "templates_exists": (BASE_DIR / "templates").exists(),
+        "data_loaded": len(data_service.students) > 0,
+        "total_students": len(data_service.students)
+    }
 
 
 if __name__ == "__main__":
