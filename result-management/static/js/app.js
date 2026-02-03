@@ -10,113 +10,89 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Load filter options from API
 async function loadFilters() {
+    console.log('📥 Loading filters...');
+    
     try {
-        console.log('📥 Loading filters...');
         const response = await fetch('/api/filters');
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP ${response.status}`);
         }
         
         const data = await response.json();
-        console.log('✅ Filters loaded:', data);
+        console.log('✅ Filters response:', data);
         
-        // Populate Branch dropdown
-        const branchSelect = document.getElementById('branchSelect');
-        if (branchSelect) {
-            branchSelect.innerHTML = '<option value="">All Branches</option>';
-            
-            if (data.branches && data.branches.length > 0) {
-                data.branches.forEach(branch => {
-                    const option = document.createElement('option');
-                    option.value = branch.short;
-                    option.textContent = `${branch.short} - ${branch.name}`;
-                    branchSelect.appendChild(option);
-                });
-            }
-        }
-        
-        // Populate Semester dropdown
-        const semesterSelect = document.getElementById('semesterSelect');
-        if (semesterSelect) {
-            semesterSelect.innerHTML = '<option value="">All</option>';
-            
-            if (data.semesters && data.semesters.length > 0) {
-                data.semesters.forEach(sem => {
-                    const option = document.createElement('option');
-                    option.value = sem;
-                    option.textContent = `Sem ${sem}`;
-                    semesterSelect.appendChild(option);
-                });
-            }
-        }
-        
-        // Populate Batch dropdown
-        const batchSelect = document.getElementById('batchSelect');
-        if (batchSelect) {
-            batchSelect.innerHTML = '<option value="">All</option>';
-            
-            if (data.batches && data.batches.length > 0) {
-                data.batches.forEach(batch => {
-                    const option = document.createElement('option');
-                    option.value = batch;
-                    option.textContent = batch;
-                    batchSelect.appendChild(option);
-                });
-            }
-        }
-        
-        // Show total students count if available
-        if (data.total_students !== undefined) {
-            console.log(`📊 Total students in database: ${data.total_students}`);
-        }
-        
-        console.log('✅ Filters populated successfully');
+        populateFilters(data);
         
     } catch (error) {
-        console.error('❌ Error loading filters:', error);
-        
-        // Fallback: populate with default values
-        populateDefaultFilters();
+        console.error('❌ API Error:', error);
+        // Use hardcoded defaults
+        populateFilters(getDefaultFilters());
     }
 }
 
-// Fallback function if API fails
-function populateDefaultFilters() {
-    console.log('⚠️ Using default filter values');
-    
+// Get default filters (fallback)
+function getDefaultFilters() {
+    return {
+        branches: [
+            { code: "519", short: "AIDS", name: "Artificial Intelligence & Data Science" },
+            { code: "516", short: "AIML", name: "Artificial Intelligence & Machine Learning" },
+            { code: "520", short: "IIOT", name: "Industrial Internet of Things" },
+            { code: "517", short: "AR", name: "Automation & Robotics" }
+        ],
+        semesters: ["01", "02", "03", "04", "05", "06", "07", "08"],
+        batches: ["2024", "2023", "2022", "2021"]
+    };
+}
+
+// Populate filter dropdowns
+function populateFilters(data) {
+    // Populate Branch dropdown
     const branchSelect = document.getElementById('branchSelect');
     if (branchSelect) {
-        branchSelect.innerHTML = `
-            <option value="">All Branches</option>
-            <option value="AIDS">AIDS - Artificial Intelligence & Data Science</option>
-            <option value="AIML">AIML - Artificial Intelligence & Machine Learning</option>
-            <option value="IIOT">IIOT - Industrial Internet of Things</option>
-            <option value="AR">AR - Automation & Robotics</option>
-        `;
+        branchSelect.innerHTML = '<option value="">All Branches</option>';
+        
+        const branches = data.branches || getDefaultFilters().branches;
+        branches.forEach(branch => {
+            const option = document.createElement('option');
+            option.value = branch.short;
+            option.textContent = `${branch.short} - ${branch.name}`;
+            branchSelect.appendChild(option);
+        });
+        console.log(`✅ Branch options: ${branches.length}`);
     }
     
+    // Populate Semester dropdown
     const semesterSelect = document.getElementById('semesterSelect');
     if (semesterSelect) {
         semesterSelect.innerHTML = '<option value="">All</option>';
-        for (let i = 1; i <= 8; i++) {
+        
+        const semesters = data.semesters || getDefaultFilters().semesters;
+        semesters.forEach(sem => {
             const option = document.createElement('option');
-            option.value = i.toString().padStart(2, '0');
-            option.textContent = `Sem ${i}`;
+            option.value = sem;
+            option.textContent = `Sem ${parseInt(sem)}`;
             semesterSelect.appendChild(option);
-        }
+        });
+        console.log(`✅ Semester options: ${semesters.length}`);
     }
     
+    // Populate Batch dropdown
     const batchSelect = document.getElementById('batchSelect');
     if (batchSelect) {
-        batchSelect.innerHTML = `
-            <option value="">All</option>
-            <option value="2024">2024</option>
-            <option value="2023">2023</option>
-            <option value="2022">2022</option>
-            <option value="2021">2021</option>
-        `;
+        batchSelect.innerHTML = '<option value="">All</option>';
+        
+        const batches = data.batches || getDefaultFilters().batches;
+        batches.forEach(batch => {
+            const option = document.createElement('option');
+            option.value = batch;
+            option.textContent = batch;
+            batchSelect.appendChild(option);
+        });
+        console.log(`✅ Batch options: ${batches.length}`);
     }
+    
+    console.log('✅ All filters populated');
 }
 
 // Load ranklist based on filters
@@ -127,32 +103,30 @@ async function loadRanklist() {
     const sortBy = document.getElementById('sortSelect').value;
     const order = document.getElementById('orderSelect').value;
     
-    // Build URL
     let url = `/api/ranklist?sort_by=${sortBy}&order=${order}`;
     if (branch) url += `&branch=${branch}`;
     if (semester) url += `&semester=${semester}`;
     if (batch) url += `&batch=${batch}`;
     
-    console.log('📥 Fetching ranklist:', url);
+    console.log('📥 Fetching:', url);
     
     try {
         const response = await fetch(url);
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP ${response.status}`);
         }
         
         const data = await response.json();
-        
-        console.log('✅ Ranklist loaded:', data.total, 'students');
+        console.log('✅ Ranklist:', data.total, 'students');
         
         currentData = data.ranklist || [];
         displayRanklist(data);
         displayStats(data);
         
     } catch (error) {
-        console.error('❌ Error loading ranklist:', error);
-        alert('Failed to load ranklist. Please try again.');
+        console.error('❌ Error:', error);
+        alert('Failed to load ranklist');
     }
 }
 
@@ -200,7 +174,7 @@ function displayRanklist(data) {
     }).join('');
 }
 
-// Display stats from ranklist data
+// Display stats
 function displayStats(data) {
     const ranklist = data.ranklist || [];
     
@@ -209,19 +183,17 @@ function displayStats(data) {
         return;
     }
     
-    const total = ranklist.length;
     const sgpas = ranklist.map(s => s.sgpa).filter(s => s > 0);
     const percentages = ranklist.map(s => s.percentage).filter(p => p > 0);
     
     const avgSgpa = sgpas.length > 0 ? (sgpas.reduce((a, b) => a + b, 0) / sgpas.length).toFixed(2) : '0.00';
     const avgPercentage = percentages.length > 0 ? (percentages.reduce((a, b) => a + b, 0) / percentages.length).toFixed(2) : '0.00';
-    const topper = ranklist[0];
     
     document.getElementById('statsRow').style.display = 'flex';
-    document.getElementById('totalStudents').textContent = total;
+    document.getElementById('totalStudents').textContent = ranklist.length;
     document.getElementById('avgSgpa').textContent = avgSgpa;
     document.getElementById('avgPercentage').textContent = avgPercentage + '%';
-    document.getElementById('topperName').textContent = topper ? topper.name.split(' ')[0] : '-';
+    document.getElementById('topperName').textContent = ranklist[0] ? ranklist[0].name.split(' ')[0] : '-';
 }
 
 // View student details
@@ -268,7 +240,6 @@ async function viewStudent(rollNo) {
             <p><strong>Branch:</strong> ${student.branch_name || student.branch}</p>
             <p><strong>Semester:</strong> ${student.semester}</p>
             <p><strong>Batch:</strong> ${student.batch}</p>
-            <p><strong>Total Marks:</strong> ${student.total_marks || 0} / ${student.max_marks || 0}</p>
         `;
         
         new bootstrap.Modal(document.getElementById('studentModal')).show();
@@ -281,12 +252,7 @@ async function viewStudent(rollNo) {
 
 // Get branch color
 function getBranchColor(branch) {
-    const colors = {
-        'AIDS': 'primary',
-        'AIML': 'danger',
-        'IIOT': 'info',
-        'AR': 'success'
-    };
+    const colors = { 'AIDS': 'primary', 'AIML': 'danger', 'IIOT': 'info', 'AR': 'success' };
     return colors[branch] || 'secondary';
 }
 
@@ -299,12 +265,7 @@ function exportToCSV() {
     
     const headers = ['Rank', 'Roll No', 'Name', 'Branch', 'Semester', 'Batch', 'SGPA', 'Percentage'];
     const rows = currentData.map(s => [
-        s.rank, 
-        s.roll_no, 
-        s.name, 
-        s.branch, 
-        s.semester, 
-        s.batch, 
+        s.rank, s.roll_no, s.name, s.branch, s.semester, s.batch,
         typeof s.sgpa === 'number' ? s.sgpa.toFixed(2) : s.sgpa,
         typeof s.percentage === 'number' ? s.percentage.toFixed(2) : s.percentage
     ]);

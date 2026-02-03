@@ -17,6 +17,17 @@ BRANCHES = {
     "517": {"code": "AR", "name": "Automation & Robotics"},
 }
 
+# Default filter options (always available)
+DEFAULT_BRANCHES = [
+    {"code": "519", "short": "AIDS", "name": "Artificial Intelligence & Data Science"},
+    {"code": "516", "short": "AIML", "name": "Artificial Intelligence & Machine Learning"},
+    {"code": "520", "short": "IIOT", "name": "Industrial Internet of Things"},
+    {"code": "517", "short": "AR", "name": "Automation & Robotics"},
+]
+
+DEFAULT_SEMESTERS = ["01", "02", "03", "04", "05", "06", "07", "08"]
+DEFAULT_BATCHES = ["2024", "2023", "2022", "2021"]
+
 # Grade to points mapping
 GRADE_POINTS = {"O": 10, "A+": 9, "A": 8, "B+": 7, "B": 6, "C": 5, "P": 4, "F": 0}
 
@@ -25,57 +36,37 @@ class DataService:
     def __init__(self):
         self.students: List[Dict] = []
         self._loaded = False
+        self._load_error = None
     
     def _find_data_file(self) -> Optional[Path]:
         """Find the data file in various possible locations"""
-        # Get the directory where this script is located
         current_dir = Path(__file__).resolve().parent
         
-        # List of possible paths to check
         possible_paths = [
-            # Relative to result-management folder
-            current_dir.parent / "data" / "output" / "parsed_results.json",
             current_dir / "data" / "parsed_results.json",
             current_dir / "parsed_results.json",
-            
-            # Absolute paths for local development
-            Path("w:/usar-ranklist/data/output/parsed_results.json"),
-            
-            # For Vercel - check environment variable or common locations
-            Path(os.environ.get("DATA_PATH", "")) / "parsed_results.json" if os.environ.get("DATA_PATH") else None,
-            
-            # Vercel serverless function paths
-            Path("/var/task/data/output/parsed_results.json"),
+            current_dir.parent / "data" / "output" / "parsed_results.json",
+            current_dir.parent / "data" / "parsed_results.json",
             Path("/var/task/result-management/data/parsed_results.json"),
-            Path("/var/task/parsed_results.json"),
+            Path("/var/task/data/parsed_results.json"),
         ]
         
-        # Filter out None values and check each path
         for path in possible_paths:
             if path and path.exists():
-                print(f"✅ Found data file at: {path}")
                 return path
-        
-        # List all files in current directory for debugging
-        print(f"📁 Current directory: {current_dir}")
-        print(f"📁 Files in current dir: {list(current_dir.iterdir()) if current_dir.exists() else 'N/A'}")
-        
-        parent = current_dir.parent
-        print(f"📁 Parent directory: {parent}")
-        print(f"📁 Files in parent: {list(parent.iterdir()) if parent.exists() else 'N/A'}")
         
         return None
     
     def load_data(self) -> bool:
         """Load data from JSON file"""
-        if self._loaded and len(self.students) > 0:
-            return True
+        if self._loaded:
+            return len(self.students) > 0
         
         file_path = self._find_data_file()
         
         if not file_path:
-            print("❌ Data file not found! Using empty dataset.")
-            self._loaded = True  # Mark as loaded to prevent repeated attempts
+            self._load_error = "Data file not found"
+            self._loaded = True
             return False
         
         try:
@@ -89,11 +80,10 @@ class DataService:
                     self.students.append(student)
             
             self._loaded = True
-            print(f"✅ Loaded {len(self.students)} students from {file_path}")
             return True
             
         except Exception as e:
-            print(f"❌ Error loading data: {e}")
+            self._load_error = str(e)
             self._loaded = True
             return False
     
@@ -101,12 +91,9 @@ class DataService:
         """Process and enrich student record"""
         try:
             roll_no = str(record.get('roll_no', ''))
-            
-            # Parse branch from roll number (digits 7-9)
             branch_code = roll_no[6:9] if len(roll_no) >= 9 else ""
             branch_info = BRANCHES.get(branch_code, {"code": "Unknown", "name": "Unknown"})
             
-            # Calculate SGPA from subjects
             subjects = record.get('subjects', [])
             sgpa = self._calculate_sgpa(subjects, record.get('percentage', 0))
             
@@ -125,8 +112,7 @@ class DataService:
                 "credits": record.get('credits_secured', 0) or 0,
                 "subjects": subjects
             }
-        except Exception as e:
-            print(f"⚠️ Error processing record: {e}")
+        except Exception:
             return None
     
     def _calculate_sgpa(self, subjects: List, percentage: float) -> float:
@@ -146,7 +132,6 @@ class DataService:
         if total_credits > 0:
             return round(weighted_sum / total_credits, 2)
         
-        # Fallback: estimate from percentage
         return round(percentage / 10, 2) if percentage else 0.0
     
     def get_ranklist(
@@ -157,14 +142,10 @@ class DataService:
         sort_by: str = "sgpa",
         ascending: bool = False
     ) -> Dict:
-        """
-        Get ranklist with filters
-        Returns ranked list sorted by SGPA or Percentage
-        """
+        """Get ranklist with filters"""
         if not self._loaded:
             self.load_data()
         
-        # Filter students
         filtered = self.students.copy()
         
         if branch:
@@ -178,13 +159,11 @@ class DataService:
         if batch:
             filtered = [s for s in filtered if s["batch"] == batch]
         
-        # Sort by SGPA or Percentage
         if sort_by == "sgpa":
             filtered.sort(key=lambda x: x["sgpa"], reverse=not ascending)
         else:
             filtered.sort(key=lambda x: x["percentage"], reverse=not ascending)
         
-        # Assign ranks
         ranklist = []
         for idx, student in enumerate(filtered):
             ranklist.append({
@@ -212,31 +191,34 @@ class DataService:
         }
     
     def get_filter_options(self) -> Dict:
-        """Get available filter options"""
+        """Get available filter options - ALWAYS returns options"""
         if not self._loaded:
             self.load_data()
         
-        # Always return branches even if no data loaded
-        branches = [
-            {"code": code, "short": info["code"], "name": info["name"]}
-            for code, info in BRANCHES.items()
-        ]
+        # Always return default branches
+        branches = DEFAULT_BRANCHES.copy()
         
-        # Get unique semesters and batches from data
-        semesters = sorted(set(s["semester"] for s in self.students if s.get("semester")))
-        batches = sorted(set(s["batch"] for s in self.students if s.get("batch")), reverse=True)
-        
-        # If no data, provide default options
-        if not semesters:
-            semesters = ["01", "02", "03", "04", "05", "06", "07", "08"]
-        if not batches:
-            batches = ["2024", "2023", "2022", "2021"]
+        # Try to get semesters and batches from data, fallback to defaults
+        if self.students:
+            semesters = sorted(set(s["semester"] for s in self.students if s.get("semester")))
+            batches = sorted(set(s["batch"] for s in self.students if s.get("batch")), reverse=True)
+            
+            # Use defaults if empty
+            if not semesters:
+                semesters = DEFAULT_SEMESTERS
+            if not batches:
+                batches = DEFAULT_BATCHES
+        else:
+            semesters = DEFAULT_SEMESTERS
+            batches = DEFAULT_BATCHES
         
         return {
             "branches": branches,
             "semesters": semesters,
             "batches": batches,
-            "total_students": len(self.students)
+            "total_students": len(self.students),
+            "data_loaded": len(self.students) > 0,
+            "error": self._load_error
         }
     
     def get_student_by_roll(self, roll_no: str) -> Optional[Dict]:
