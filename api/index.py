@@ -51,7 +51,7 @@ BRANCH_MAP = {
 
 def get_branch_from_roll(roll_no: str) -> dict:
     if len(roll_no) >= 5:
-        code = roll_no[2:5]
+        code = roll_no[6:9]
         return BRANCH_MAP.get(code, {"short": "UNK", "name": "Unknown"})
     return {"short": "UNK", "name": "Unknown"}
 
@@ -108,7 +108,7 @@ def get_ranklist(branch: str = None, semester: str = None, batch: str = None, so
         branch_codes = {v["short"]: k for k, v in BRANCH_MAP.items()}
         code = branch_codes.get(branch.upper())
         if code:
-            filtered = [s for s in filtered if len(s.get("roll_no", "")) >= 5 and s["roll_no"][2:5] == code]
+            filtered = [s for s in filtered if len(s.get("roll_no", "")) >= 5 and s["roll_no"][6:9] == code]
     
     if semester:
         filtered = [s for s in filtered if s.get("semester") == semester]
